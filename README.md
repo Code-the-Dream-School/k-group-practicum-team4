@@ -9,7 +9,8 @@ A full-stack web application with a React frontend and a Node/Express backend th
 ## 🚀 Live Demo
 
 - **Frontend Live Site:** https://your-frontend-url.com  
-- **Frontend Repo:** /frontend  
+- **Frontend Repo:** /frontend
+- **Mobile Repo:** /mobile    
 - **Backend Repo:** /backend
 
 ## 🧠 Problem Statement
@@ -39,21 +40,19 @@ Add screenshots or GIFs of key features here.
 
 ## 🛠 Tech Stack
 
-### Frontend
-- React
-- JavaScript (ES6+)
-- HTML5
-- CSS3 / Tailwind / Bootstrap
-- Vite or Create React App
+### Frontend & Mobile
+- React (Web) & React Native (Expo)
+- TypeScript
+- Tailwind CSS v4 & NativeWind v4
+- Vite & Expo Router
 
 ### Backend
-- Node.js
-- Express.js
+- Node.js & Express.js
+- TypeScript
 - REST API
 
 ### Database
-- MongoDB (Mongoose) **or**
-- PostgreSQL (Prisma / Knex / Sequelize)
+- MongoDB (Mongoose)
 
 ### Tooling
 - Git & GitHub
@@ -72,19 +71,34 @@ project-root/
 │   │   ├── services/        
 │   │   ├── styles/
 │   │   ├── utils/
-│   │   ├── App.jsx
-│   │   └── main.jsx
+│   │   ├── App.tsx
+│   │   └── main.tsx
 │   ├── index.html
+│   ├── tsconfig.json
+│   └── package.json
+│
+├── mobile/
+│   ├── app/
+│   │   ├── _layout.tsx
+│   │   └── index.tsx
+│   ├── components/
+│   ├── assets/
+│   ├── global.css
+│   ├── tailwind.config.js
 │   └── package.json
 │
 ├── backend/
-│   ├── controllers/
-│   ├── routes/
-│   ├── models/
-│   ├── middleware/
-│   ├── config/
-│   ├── app.js
-│   ├── server.js
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── routes/
+│   │   ├── models/
+│   │   ├── middleware/
+│   │   ├── config/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   ├── dist/
+│   ├── tsconfig.json
+│   ├── .env.example
 │   └── package.json
 │
 └── README.md
@@ -127,6 +141,13 @@ npm run dev
 Frontend runs on:  
 http://localhost:5173
 
+### Mobile Setup
+
+```bash
+cd mobile
+npm install
+npx expo start --tunnel
+
 ## 🧪 Available Scripts
 
 ### Frontend
@@ -135,6 +156,11 @@ npm run dev
 npm run build
 npm run preview
 ```
+### Mobile
+```bash
+npx expo start --tunnel   # Best for remote/mobile testing
+npx expo start --android  # Run on Android Emulator
+npx expo start --ios      # Run on iOS Simulator
 
 ### Backend
 ```bash
