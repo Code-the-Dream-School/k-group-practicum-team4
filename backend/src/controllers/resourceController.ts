@@ -32,7 +32,7 @@ const handleCastError = (error: any, res: Response): boolean => {
   return false;
 };
 
-// plain text only
+// Create resource (plain text only)
 export const createResource = async (
   req: Request,
   res: Response,
@@ -143,7 +143,6 @@ export const getResourceById = async (
   }
 };
 
-// title and tags only
 export const updateResource = async (
   req: Request,
   res: Response,
