@@ -1,5 +1,4 @@
 import express from "express";
-import type { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -8,29 +7,34 @@ import rateLimit from "express-rate-limit";
 import resourceRoutes from "./routes/resourceRoutes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
 
-const app: Application = express();
+const app = express();
 
-// Security & best-practice middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-app.use(limiter);
+if (process.env.NODE_ENV === "production") {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
+      success: false,
+      error: "Too many requests, please try again later.",
+    },
+  });
 
-// Root route
-app.get("/", (req, res) => {
+  app.use(limiter);
+}
+
+app.get("/health", (_req, res) => {
   res.send("Backend API is running");
 });
 
-// Routes
 app.use("/api/resources", resourceRoutes);
 
-// Error handling (ALWAYS LAST!)
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
 

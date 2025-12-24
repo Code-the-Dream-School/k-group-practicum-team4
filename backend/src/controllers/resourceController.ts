@@ -1,77 +1,245 @@
 import { Request, Response, NextFunction } from "express";
 import { Resource } from "../models/Resource";
 import { LIMITS } from "../config/constants";
+import {
+  validateTitle,
+  validateTextContent,
+  validateTags,
+  parseTags,
+  normalizeText,
+} from "../utils/validation";
 
-// Create resource with plain text
+const requireUserId = (req: Request, res: Response): string | null => {
+  const userId = req.user?.id;
+  if (!userId) {
+    res.status(401).json({
+      success: false,
+      error: "User not authenticated",
+    });
+    return null;
+  }
+  return userId;
+};
+
+const handleCastError = (error: any, res: Response): boolean => {
+  if (error?.name === "CastError") {
+    res.status(400).json({
+      success: false,
+      error: "Invalid resource ID format",
+    });
+    return true;
+  }
+  return false;
+};
+
+// plain text only
 export const createResource = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { title, tags = [], textContent } = req.body;
-    const userId = req.user?.id;
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
-    // Enhanced validation using constants
-    if (!title || !textContent) {
+    const { title, tags: rawTags, textContent } = req.body;
+
+    const titleValidation = validateTitle(title);
+    if (!titleValidation.isValid) {
       return res.status(400).json({
         success: false,
-        error: "Title and textContent are required",
+        error: titleValidation.error,
       });
     }
 
-    if (title.trim().length === 0) {
+    const contentValidation = validateTextContent(textContent);
+    if (!contentValidation.isValid) {
       return res.status(400).json({
         success: false,
-        error: "Title cannot be empty",
+        error: contentValidation.error,
       });
     }
 
-    if (title.length > LIMITS.TITLE_MAX_LENGTH) {
-      return res.status(400).json({
-        success: false,
-        error: `Title too long (max ${LIMITS.TITLE_MAX_LENGTH} chars)`,
-      });
-    }
-
-    if (textContent.length > LIMITS.TEXT_CONTENT_MAX_LENGTH) {
-      return res.status(400).json({
-        success: false,
-        error: `Content too large (max ${
-          LIMITS.TEXT_CONTENT_MAX_LENGTH / 1000
-        }KB)`,
-      });
-    }
-
-    // Tags validation using constants
-    if (tags.length > LIMITS.MAX_TAGS) {
+    const parsedTags = parseTags(rawTags);
+    if (parsedTags.length > LIMITS.MAX_TAGS) {
       return res.status(400).json({
         success: false,
         error: `Maximum ${LIMITS.MAX_TAGS} tags allowed`,
       });
     }
 
-    const validatedTags = tags
-      .map((tag: string) => tag.trim())
-      .filter(
-        (tag: string) => tag.length > 0 && tag.length <= LIMITS.TAG_MAX_LENGTH
-      )
-      .slice(0, LIMITS.MAX_TAGS); // Auto-limit to max tags
-
     const resource = new Resource({
       ownerId: userId,
-      title: title.trim(),
-      tags: validatedTags,
-      textContent: textContent.trim(),
+      title: normalizeText(title),
+      tags: validateTags(parsedTags),
+      textContent: normalizeText(textContent),
+      type: "plain_text",
     });
 
     const savedResource = await resource.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       resource: savedResource,
     });
   } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getUserResources = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const resources = await Resource.find({ ownerId: userId })
+      .sort({ createdAt: -1 })
+      .select("-__v")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: resources.length,
+      resources,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getResourceById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const { id } = req.params;
+
+    const resource = await Resource.findOne({ _id: id, ownerId: userId })
+      .select("-__v")
+      .lean();
+
+    if (!resource) {
+      return res.status(404).json({
+        success: false,
+        error: "Resource not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      resource,
+    });
+  } catch (error: any) {
+    if (handleCastError(error, res)) return;
+    next(error);
+  }
+};
+
+// title and tags only
+export const updateResource = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const { id } = req.params;
+    const { title, tags: rawTags } = req.body;
+
+    const updateData: Record<string, any> = {};
+
+    if (title !== undefined) {
+      const titleValidation = validateTitle(title);
+      if (!titleValidation.isValid) {
+        return res.status(400).json({
+          success: false,
+          error: titleValidation.error,
+        });
+      }
+      updateData.title = normalizeText(title);
+    }
+
+    if (rawTags !== undefined) {
+      const parsedTags = parseTags(rawTags);
+
+      if (parsedTags.length > LIMITS.MAX_TAGS) {
+        return res.status(400).json({
+          success: false,
+          error: `Maximum ${LIMITS.MAX_TAGS} tags allowed`,
+        });
+      }
+
+      updateData.tags = validateTags(parsedTags);
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "No valid fields to update. Only title and tags can be updated.",
+      });
+    }
+
+    const updatedResource = await Resource.findOneAndUpdate(
+      { _id: id, ownerId: userId },
+      updateData,
+      { new: true }
+    )
+      .select("-__v")
+      .lean();
+
+    if (!updatedResource) {
+      return res.status(404).json({
+        success: false,
+        error: "Resource not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      resource: updatedResource,
+    });
+  } catch (error: any) {
+    if (handleCastError(error, res)) return;
+    next(error);
+  }
+};
+
+export const deleteResource = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const { id } = req.params;
+
+    const deletedResource = await Resource.findOneAndDelete({
+      _id: id,
+      ownerId: userId,
+    });
+
+    if (!deletedResource) {
+      return res.status(404).json({
+        success: false,
+        error: "Resource not found",
+      });
+    }
+
+    return res.status(204).send();
+  } catch (error: any) {
+    if (handleCastError(error, res)) return;
     next(error);
   }
 };
