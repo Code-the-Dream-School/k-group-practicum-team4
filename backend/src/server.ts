@@ -9,10 +9,8 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    // Validate environment variables before starting
     validateEnv();
 
-    // Connect to MongoDB
     await connectMongo(process.env.MONGODB_URI!);
 
     app.listen(PORT, () => {

@@ -1,4 +1,3 @@
-// backend/src/routes/resourceRoutes.ts
 import express from "express";
 import {
   createResource,
