@@ -1,16 +1,33 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 :root {
   color-scheme: light;
+  --color-background: #f6f6f6;
+  --color-surface: #ffffff;
+  --color-surface-veil: rgba(255, 255, 255, 0.6);
+  --color-surface-border: rgba(255, 255, 255, 0.5);
+  --color-border-muted: #cfd3f0;
+  --color-primary: #6b53ff;
+  --color-primary-hover: #9381ff;
+  --color-primary-muted: #dedaf8;
+  --color-primary-strong: #4d3be6;
+  --color-accent: #fdd064;
+  --color-accent-soft: rgba(253, 208, 100, 0.15);
+  --color-accent-hover: #ffd867;
+  --color-accent-ink: #3b2f8d;
+  --color-text: #1d1d1f;
+  --shadow-strong: 0 12px 26px rgba(107, 83, 255, 0.35);
+  --shadow-card: 0 26px 70px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 32px 80px rgba(0, 0, 0, 0.12);
 }
 
 body {
   margin: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(255, 235, 170, 0.35), transparent 38%),
-    radial-gradient(circle at 80% 10%, rgba(110, 90, 255, 0.28), transparent 42%), #f4f4f6;
-  color: #1d1d1f;
-  font-family: "DM Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(253, 208, 100, 0.28), transparent 38%),
+    radial-gradient(circle at 80% 10%, rgba(107, 83, 255, 0.28), transparent 42%), var(--color-background);
+  color: var(--color-text);
+  font-family: "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
