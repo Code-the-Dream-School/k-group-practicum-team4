@@ -11,7 +11,7 @@ export const MOCK_USER = {
 } as const;
 
 export const validateEnv = () => {
-  const required = ["MONGODB_URI"];
+  const required = ["MONGO_URI"];
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {

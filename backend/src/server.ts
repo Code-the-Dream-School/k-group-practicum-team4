@@ -11,7 +11,7 @@ const startServer = async () => {
   try {
     validateEnv();
 
-    await connectMongo(process.env.MONGODB_URI!);
+    await connectMongo(process.env.MONGO_URI!);
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
