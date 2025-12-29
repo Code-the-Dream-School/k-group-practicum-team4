@@ -1,44 +1,54 @@
-import express from 'express';
-import type { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
-import flashcardsRoutes from './routes/flashcards.routes';
+// backend/src/app.ts
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 
+import resourceRoutes from "./routes/resourceRoutes";
+import flashcardsRoutes from "./routes/flashcards.routes";
+import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
 
-// import helloRoutes from './routes/hello.routes';
+const app = express();
 
-const app: Application = express();
-
-// Security & best-practice middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
 // Dev-only user identity placeholder (until auth/JWT is implemented).
-// With exactOptionalPropertyTypes enabled, we should only assign when the value exists.
+// We keep ownerId for flashcards flow.
+// (Resources currently use mockAuth/req.user in their middleware layer.)
 app.use((req, _res, next) => {
   const devUserId = process.env.DEV_USER_ID;
   if (devUserId) req.ownerId = devUserId;
   next();
 });
 
-app.use(morgan('dev'));
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+if (process.env.NODE_ENV === "production") {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
+      success: false,
+      error: "Too many requests, please try again later.",
+    },
+  });
+
+  app.use(limiter);
+}
+
+app.get("/health", (_req, res) => {
+  res.send("Backend API is running");
 });
-app.use(limiter);
 
-// Routes
-// app.use('/api/hello', helloRoutes);
-app.use('/api', flashcardsRoutes);
+app.use("/api/resources", resourceRoutes);
+app.use("/api", flashcardsRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('Backend API is running');
-});
+app.use("*", notFoundHandler);
+app.use(globalErrorHandler);
 
 export default app;
