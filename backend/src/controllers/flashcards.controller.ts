@@ -1,3 +1,4 @@
+// backend/src/controllers/flashcards.controller.ts
 import type { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { FlashcardSetModel } from '../models/FlashcardSet';
@@ -5,6 +6,10 @@ import { FlashcardModel } from '../models/Flashcard';
 import { generateFlashcardsFromText } from '../services/flashcardsGenerator';
 
 export const generateFlashcardsSet = async (req: Request, res: Response) => {
+  // Keep refs for cleanup (rollback) if something fails after set creation
+  let ownerIdForRollback: mongoose.Types.ObjectId | null = null;
+  let createdSetIdForRollback: mongoose.Types.ObjectId | null = null;
+
   try {
     const ownerIdStr = req.ownerId;
 
@@ -16,6 +21,7 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
     }
 
     const ownerId = new mongoose.Types.ObjectId(ownerIdStr);
+    ownerIdForRollback = ownerId;
 
     const body = req.body as {
       resourceId?: string;
@@ -49,6 +55,9 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
       title,
     });
 
+    // Save for rollback cleanup in case inserting cards fails
+    createdSetIdForRollback = set._id;
+
     const text = typeof body.text === 'string' ? body.text : '';
     const cards = await generateFlashcardsFromText({ text, count });
 
@@ -62,6 +71,7 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
 
     await FlashcardModel.insertMany(docs);
 
+
     return res.status(201).json({
       setId: set._id.toString(),
       title,
@@ -69,6 +79,24 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
       cardsCount: docs.length,
     });
   } catch (e) {
+    // Rollback: if we created the set but failed to insert cards, remove the empty/orphan set
+    if (ownerIdForRollback && createdSetIdForRollback) {
+      try {
+        // In case insertMany partially inserted something (rare), cleanup cards too
+        await FlashcardModel.deleteMany({
+          ownerId: ownerIdForRollback,
+          setId: createdSetIdForRollback,
+        });
+
+        await FlashcardSetModel.deleteOne({
+          _id: createdSetIdForRollback,
+          ownerId: ownerIdForRollback,
+        });
+      } catch {
+        // Swallow cleanup errors to not mask the original error
+      }
+    }
+
     const msg = e instanceof Error ? e.message : 'Unknown error';
     return res.status(500).json({ message: msg });
   }
