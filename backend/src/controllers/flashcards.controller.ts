@@ -1,35 +1,42 @@
-// backend/src/controllers/flashcards.controller.ts
 import type { Request, Response } from 'express';
 import mongoose from 'mongoose';
+
 import { FlashcardSetModel } from '../models/FlashcardSet';
 import { FlashcardModel } from '../models/Flashcard';
+import { Resource } from '../models/Resource';
 import { generateFlashcardsFromText } from '../services/flashcardsGenerator';
 
 export const generateFlashcardsSet = async (req: Request, res: Response) => {
-  // Keep refs for cleanup (rollback) if something fails after set creation
+
   let ownerIdForRollback: mongoose.Types.ObjectId | null = null;
   let createdSetIdForRollback: mongoose.Types.ObjectId | null = null;
 
   try {
+    // Flashcards currently rely on req.ownerId (dev placeholder).
+    // In real auth, this would come from a decoded JWT / session.
     const ownerIdStr = req.ownerId;
 
     if (!ownerIdStr) {
       return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
     }
+
+    // Flashcards models expect ownerId to be a Mongo ObjectId.
     if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
       return res.status(400).json({ message: 'Invalid ownerId (ObjectId expected).' });
     }
 
     const ownerId = new mongoose.Types.ObjectId(ownerIdStr);
+
+    // Save for rollback cleanup in case we fail later.
     ownerIdForRollback = ownerId;
 
     const body = req.body as {
       resourceId?: string;
       title?: string;
       count?: number;
-      text?: string;
     };
 
+    // resourceId is required and must be a valid ObjectId string.
     const resourceIdStr = body.resourceId;
     if (!resourceIdStr || !mongoose.Types.ObjectId.isValid(resourceIdStr)) {
       return res.status(400).json({ message: 'resourceId is required (ObjectId).' });
@@ -39,13 +46,37 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
     const countRaw = typeof body.count === 'number' ? body.count : 10;
     const count = Math.max(1, Math.min(30, Math.floor(countRaw)));
 
+    const resourceOwnerId = req.user?.id ?? ownerIdStr;
+
+    const resourceByOwner = await Resource.findOne({
+      _id: resourceIdStr,
+      ownerId: resourceOwnerId,
+    })
+      .select({ textContent: 1 })
+      .lean();
+
+    const resource =
+      resourceByOwner ??
+      (await Resource.findById(resourceIdStr).select({ textContent: 1 }).lean());
+
+    if (!resource) {
+      return res.status(404).json({ message: 'Resource not found.' });
+    }
+
+    // generate flashcards from the resource textContent.
+    const text = (resource.textContent ?? '').trim();
+    if (!text) {
+      return res.status(400).json({
+        message: 'Resource textContent is empty. Upload/paste text into the resource first.',
+      });
+    }
+
     const lastSet = await FlashcardSetModel.findOne({ ownerId, resourceId })
       .sort({ sequenceNumber: -1 })
       .select({ sequenceNumber: 1 })
       .lean();
 
     const nextSeq = (lastSet?.sequenceNumber ?? 0) + 1;
-
     const title = (body.title && body.title.trim()) || `Flashcards ${nextSeq}`;
 
     const set = await FlashcardSetModel.create({
@@ -55,10 +86,8 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
       title,
     });
 
-    // Save for rollback cleanup in case inserting cards fails
     createdSetIdForRollback = set._id;
 
-    const text = typeof body.text === 'string' ? body.text : '';
     const cards = await generateFlashcardsFromText({ text, count });
 
     const docs = cards.map((c) => ({
@@ -71,7 +100,6 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
 
     await FlashcardModel.insertMany(docs);
 
-
     return res.status(201).json({
       setId: set._id.toString(),
       title,
@@ -79,10 +107,8 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
       cardsCount: docs.length,
     });
   } catch (e) {
-    // Rollback: if we created the set but failed to insert cards, remove the empty/orphan set
     if (ownerIdForRollback && createdSetIdForRollback) {
       try {
-        // In case insertMany partially inserted something (rare), cleanup cards too
         await FlashcardModel.deleteMany({
           ownerId: ownerIdForRollback,
           setId: createdSetIdForRollback,
@@ -93,7 +119,6 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
           ownerId: ownerIdForRollback,
         });
       } catch {
-        // Swallow cleanup errors to not mask the original error
       }
     }
 
