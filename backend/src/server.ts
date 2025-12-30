@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
+dotenv.config();
+
 import app from "./app";
 import connectMongo from "./config/db.mongo";
 import { validateEnv } from "./config/constants";
-
-dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 

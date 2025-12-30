@@ -1,3 +1,4 @@
+// backend/src/app.ts
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -5,6 +6,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
 import resourceRoutes from "./routes/resourceRoutes";
+import flashcardsRoutes from "./routes/flashcards.routes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -12,6 +14,16 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+// Dev-only user identity placeholder (until auth/JWT is implemented).
+// We keep ownerId for flashcards flow.
+// (Resources currently use mockAuth/req.user in their middleware layer.)
+app.use((req, _res, next) => {
+  const devUserId = process.env.DEV_USER_ID;
+  if (devUserId) req.ownerId = devUserId;
+  next();
+});
+
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
@@ -34,6 +46,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/resources", resourceRoutes);
+app.use("/api", flashcardsRoutes);
 
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
