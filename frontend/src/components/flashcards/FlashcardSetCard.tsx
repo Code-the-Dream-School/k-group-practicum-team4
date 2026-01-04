@@ -46,7 +46,7 @@ export default function FlashcardSetCard({
         <div className="mt-6 text-xs text-gray-500">{formatRelativeCreatedAt(createdAt)}</div>
       </button>
 
-      {/* Delete icon: always visible, grey -> purple on hover, no background */}
+      {/* Delete icon */}
       <div className="absolute bottom-4 right-4">
         <button
           type="button"
