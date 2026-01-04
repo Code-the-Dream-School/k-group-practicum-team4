@@ -1,4 +1,3 @@
-// FlashcardSetCard.tsx
 import { Trash2 } from "lucide-react";
 
 type Props = {
@@ -7,7 +6,7 @@ type Props = {
   countLabel: string;
   isDeleting: boolean;
   onOpen: () => void;
-  onDelete: () => void;
+  onDelete: () => void; // opens confirm modal now
 };
 
 function formatRelativeCreatedAt(iso: string) {
@@ -38,7 +37,6 @@ export default function FlashcardSetCard({
       >
         <div className="text-sm font-bold text-[var(--color-primary)]">{title}</div>
 
-        {/* Lighter badge (not like primary button) */}
         <div className="mt-4 inline-flex rounded-full bg-[var(--color-primary-muted)] px-4 py-1 text-xs font-semibold text-[var(--color-primary)]">
           {countLabel}
         </div>
@@ -46,13 +44,12 @@ export default function FlashcardSetCard({
         <div className="mt-6 text-xs text-gray-500">{formatRelativeCreatedAt(createdAt)}</div>
       </button>
 
-      {/* Delete icon */}
       <div className="absolute bottom-4 right-4">
         <button
           type="button"
           onClick={(e) => {
-            e.stopPropagation(); // prevents triggering onOpen
-            onDelete();
+            e.stopPropagation();
+            onDelete(); // open confirm modal
           }}
           disabled={isDeleting}
           aria-label="Delete set"
