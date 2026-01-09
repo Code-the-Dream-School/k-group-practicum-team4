@@ -10,10 +10,12 @@ function App() {
             <Route path="/" element={<SignUpPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/signin" element={<SignInPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
             <Route path="/resources/:id" element={<ResourcePage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
 }
 
 export default App;
+
+
