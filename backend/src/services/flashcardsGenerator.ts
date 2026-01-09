@@ -1,103 +1,129 @@
 // backend/src/services/flashcardsGenerator.ts
-import { generateText } from '../ai/llm';
+import { generateText } from "../ai/llm";
 
 export type GeneratedFlashcard = {
   front: string;
   back: string;
-  explanation: string; // REQUIRED
+  explanation: string;
 };
 
 const stubCards = (count: number): GeneratedFlashcard[] =>
   Array.from({ length: count }).map((_, i) => ({
     front: `Question ${i + 1}`,
     back: `Answer ${i + 1}`,
-    explanation: 'Short explanation (stub).',
+    explanation: "Short explanation (stub).",
   }));
 
-const extractJsonObject = (raw: string): string => {
-  const trimmed = (raw || '').trim();
-
-  // Remove ```json fences if model still returns them
-  const noFences = trimmed
-    .replace(/^```(?:json)?/i, '')
-    .replace(/```$/i, '')
+const stripFences = (raw: string) =>
+  (raw || "")
+    .trim()
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/i, "")
     .trim();
 
-  const start = noFences.indexOf('{');
-  const end = noFences.lastIndexOf('}');
+const looksTruncatedJson = (s: string) => {
+  const t = stripFences(s);
+  const startsOk = t.startsWith("{") || t.startsWith("[");
+  const endsOk = t.endsWith("}") || t.endsWith("]");
+  return startsOk && !endsOk;
+};
 
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error('No JSON object found in LLM response');
+const extractJsonPayload = (raw: string): string => {
+  const noFences = stripFences(raw);
+
+  const objStart = noFences.indexOf("{");
+  const objEnd = noFences.lastIndexOf("}");
+
+  const arrStart = noFences.indexOf("[");
+  const arrEnd = noFences.lastIndexOf("]");
+
+  if (objStart !== -1 && objEnd !== -1 && objEnd > objStart) {
+    return noFences.slice(objStart, objEnd + 1);
   }
 
-  return noFences.slice(start, end + 1);
+  if (arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart) {
+    return noFences.slice(arrStart, arrEnd + 1);
+  }
+
+  throw new Error("No JSON payload found in LLM response");
+};
+
+const parseCards = (jsonText: string): GeneratedFlashcard[] => {
+  const parsed = JSON.parse(jsonText) as any;
+
+  const cardsArray = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed?.cards)
+      ? parsed.cards
+      : Array.isArray(parsed?.flashcards)
+        ? parsed.flashcards
+        : null;
+
+  if (!cardsArray || !Array.isArray(cardsArray)) {
+    throw new Error('LLM JSON missing a "cards" array');
+  }
+
+  return cardsArray
+    .map((c: any) => {
+      const front = String(c?.front ?? c?.question ?? "").trim();
+      const back = String(c?.back ?? c?.answer ?? "").trim();
+      const explanation = String(c?.explanation ?? c?.rationale ?? c?.why ?? "").trim();
+
+      if (!front || !back) return null;
+
+      return {
+        front,
+        back,
+        explanation: explanation || "-",
+      } satisfies GeneratedFlashcard;
+    })
+    .filter(Boolean) as GeneratedFlashcard[];
 };
 
 export const generateFlashcardsFromText = async (params: {
   text: string;
   count: number;
 }): Promise<GeneratedFlashcard[]> => {
-  const mode = (process.env.LLM_MODE || 'stub').toLowerCase();
-  const text = (params.text || '').trim();
+  const mode = (process.env.LLM_MODE || "stub").toLowerCase();
+  const text = (params.text || "").trim();
   const count = Math.max(1, Math.min(30, Math.floor(params.count)));
 
-  // If no text or stub mode — return stub cards (still valid for FE testing)
-  if (!text || mode === 'stub') {
-    return stubCards(count);
-  }
+  if (!text || mode === "stub") return stubCards(count);
 
   const prompt = `
 You are generating study flashcards.
+Return ONLY valid JSON.
 
-Return ONLY valid JSON (no markdown, no extra text).
 Schema:
-{
-  "cards": [
-    { "front": "question", "back": "answer", "explanation": "REQUIRED short explanation" }
-  ]
-}
+{ "cards": [ { "front": "...", "back": "...", "explanation": "..." } ] }
 
 Rules:
-- Make exactly ${count} cards.
-- Use the provided text as the only source.
-- Keep fronts concise (one question).
-- Keep backs concise (one direct answer).
-- explanation is REQUIRED and must be 1-2 sentences max.
+- Exactly ${count} cards.
+- Use the text as the only source.
+- explanation may be "-" if unsure.
 
 Text:
 """${text}"""
 `.trim();
 
   try {
-    const raw = await generateText({ prompt });
+    let raw = await generateText({ prompt });
 
-    if (!raw || !raw.trim()) {
-      throw new Error('Empty LLM response');
+    // If model returned truncated JSON — retry once (this is your case).
+    if (looksTruncatedJson(raw)) {
+      raw = await generateText({
+        prompt: `${prompt}\n\nIMPORTANT: Your previous response was cut off. Return the FULL JSON again. No extra text.`,
+      });
     }
 
-    const jsonText = extractJsonObject(raw);
-    const parsed = JSON.parse(jsonText) as { cards?: unknown };
+    const jsonText = extractJsonPayload(raw);
+    const cleaned = parseCards(jsonText);
 
-    if (!parsed.cards || !Array.isArray(parsed.cards)) {
-      throw new Error('LLM JSON missing "cards" array');
-    }
-
-    const cleaned: GeneratedFlashcard[] = parsed.cards
-      .map((c: any) => ({
-        front: String(c?.front ?? '').trim(),
-        back: String(c?.back ?? '').trim(),
-        explanation: String(c?.explanation ?? '').trim(),
-      }))
-      .filter((c) => c.front && c.back && c.explanation);
-
-    // Make output stable for UI: always return exactly `count`
     if (cleaned.length >= count) return cleaned.slice(0, count);
 
-    // If LLM returned fewer cards, fill the rest with stubs (still valid UI)
-    const filler = stubCards(count - cleaned.length);
-    return [...cleaned, ...filler];
+    return [...cleaned, ...stubCards(count - cleaned.length)];
   } catch (err) {
-    console.error('[flashcardsGenerator] LLM parse/call failed, fallback to stub:', err);
+    console.error("[flashcardsGenerator] LLM parse/call failed -> stub fallback:", err);
     return stubCards(count);
   }
 };
