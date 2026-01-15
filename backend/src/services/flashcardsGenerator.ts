@@ -14,6 +14,64 @@ const stubCards = (count: number): GeneratedFlashcard[] =>
     explanation: "Short explanation (stub).",
   }));
 
+const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
+  const lines = (raw || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const cards: GeneratedFlashcard[] = [];
+  let pendingQuestion: string | null = null;
+
+  const inlineQa =
+    /^(?:q(?:uestion)?\s*\d*|\d+)\s*[:.)-]\s*(.+?)\s+a(?:nswer)?\s*\d*\s*[:.-]\s*(.+)$/i;
+  const questionLine = /^(?:q(?:uestion)?\s*\d*|\d+)\s*[:.)-]\s*(.+)$/i;
+  const answerLine = /^a(?:nswer)?\s*\d*\s*[:.-]\s*(.+)$/i;
+
+  for (const line of lines) {
+    const inlineMatch = line.match(inlineQa);
+    if (inlineMatch) {
+      cards.push({
+        front: inlineMatch[1].trim(),
+        back: inlineMatch[2].trim(),
+        explanation: "-",
+      });
+      pendingQuestion = null;
+      continue;
+    }
+
+    const questionMatch = line.match(questionLine);
+    if (questionMatch) {
+      pendingQuestion = questionMatch[1].trim();
+      continue;
+    }
+
+    const answerMatch = line.match(answerLine);
+    if (answerMatch) {
+      if (pendingQuestion) {
+        cards.push({
+          front: pendingQuestion,
+          back: answerMatch[1].trim(),
+          explanation: "-",
+        });
+        pendingQuestion = null;
+      }
+      continue;
+    }
+
+    if (pendingQuestion) {
+      cards.push({
+        front: pendingQuestion,
+        back: line,
+        explanation: "-",
+      });
+      pendingQuestion = null;
+    }
+  }
+
+  return cards.filter((card) => card.front && card.back);
+};
+
 const stripFences = (raw: string) =>
   (raw || "")
     .trim()
@@ -88,7 +146,15 @@ export const generateFlashcardsFromText = async (params: {
   const text = (params.text || "").trim();
   const count = Math.max(1, Math.min(30, Math.floor(params.count)));
 
-  if (!text || mode === "stub") return stubCards(count);
+  if (!text) return stubCards(count);
+
+  const parsedCards = parseQaPairs(text);
+  if (parsedCards.length > 0) {
+    if (parsedCards.length >= count) return parsedCards.slice(0, count);
+    return parsedCards;
+  }
+
+  if (mode === "stub") return stubCards(count);
 
   const prompt = `
 You are generating study flashcards.

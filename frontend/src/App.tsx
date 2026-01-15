@@ -2,6 +2,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 import SignUpPage from "./pages/SignUp";
 import SignInPage from "./pages/SignIn";
 import ResourcePage from "./pages/ResourcePage";
+import LibraryPage from "./pages/LibraryPage";
 
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
             <Route path="/" element={<SignUpPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/signin" element={<SignInPage />} />
+            <Route path="/library" element={<LibraryPage />} />
             <Route path="/resources/:id" element={<ResourcePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

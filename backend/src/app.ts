@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 
 import resourceRoutes from "./routes/resourceRoutes";
 import flashcardsRoutes from "./routes/flashcards.routes";
+import aiRoutes from "./routes/ai.routes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -47,6 +48,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/resources", resourceRoutes);
 app.use("/api", flashcardsRoutes);
+app.use("/api", aiRoutes);
 
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
