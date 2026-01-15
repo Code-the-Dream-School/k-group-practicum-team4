@@ -5,9 +5,11 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
+import authRouter from "./routes/auth";
 import resourceRoutes from "./routes/resourceRoutes";
 import flashcardsRoutes from "./routes/flashcards.routes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
+import { auth as authMiddleware  } from "./middleware/auth";
 
 const app = express();
 
@@ -45,8 +47,9 @@ app.get("/health", (_req, res) => {
   res.send("Backend API is running");
 });
 
-app.use("/api/resources", resourceRoutes);
-app.use("/api", flashcardsRoutes);
+app.use("/api/auth", authRouter);
+app.use("/api/resources", authMiddleware, resourceRoutes);
+app.use("/api", authMiddleware, flashcardsRoutes);
 
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
