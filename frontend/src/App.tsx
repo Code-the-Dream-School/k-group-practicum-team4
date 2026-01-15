@@ -1,4 +1,5 @@
 import {Navigate, Route, Routes} from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUp";
 import SignInPage from "./pages/SignIn";
 import ResourcePage from "./pages/ResourcePage";
@@ -7,6 +8,7 @@ import ResourcePage from "./pages/ResourcePage";
 function App() {
     return (
         <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/" element={<SignUpPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/signin" element={<SignInPage />} />
