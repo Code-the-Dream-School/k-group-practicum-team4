@@ -25,10 +25,10 @@ import {
 } from "../api/apiClient";
 
 const navItems = [
-  { label: "Dashboard", icon: Home },
-  { label: "Study Room", icon: BookOpen, active: true },
-  { label: "Flashcards", icon: IdCard },
-  { label: "Quizzes", icon: HelpCircle },
+  { label: "Dashboard", icon: Home, path: "/" },
+  { label: "Study Room", icon: BookOpen, path: "/library", active: true },
+  { label: "Flashcards", icon: IdCard, path: "/flashcards" },
+  { label: "Quizzes", icon: HelpCircle, path: "/quizzes" },
 ];
 
 function LibraryPage() {
@@ -253,9 +253,9 @@ function LibraryPage() {
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
-              <button
+              <Link
                 key={item.label}
-                type="button"
+                to={item.path}
                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1 transition ${
                   item.active
                     ? "bg-[var(--color-primary-muted)] text-[var(--color-primary-strong)]"
@@ -264,7 +264,7 @@ function LibraryPage() {
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
-              </button>
+              </Link>
             );
           })}
         </div>
