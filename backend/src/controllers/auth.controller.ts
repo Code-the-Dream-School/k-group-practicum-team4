@@ -18,7 +18,13 @@ export const register = async (
       user: { displayName: user.displayName },
       token,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 11000) {
+      return next(new BadRequestError(`Duplicate value entered for ${Object.keys(
+        error.keyValue
+      )} field, please choose another value`));
+    }
+
     return next(error);
   }
 };
