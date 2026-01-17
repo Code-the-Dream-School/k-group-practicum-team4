@@ -17,15 +17,6 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// Dev-only user identity placeholder (until auth/JWT is implemented).
-// We keep ownerId for flashcards flow.
-// (Resources currently use mockAuth/req.user in their middleware layer.)
-app.use((req, _res, next) => {
-  const devUserId = process.env.DEV_USER_ID;
-  if (devUserId) req.ownerId = devUserId;
-  next();
-});
-
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }

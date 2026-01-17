@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { UnauthenticatedError } from '../errors';
-import { MOCK_USER } from '../config/constants';
 
 export const auth = async (
   req: Request,
@@ -40,22 +39,4 @@ export const auth = async (
   } catch (err) {
     return next(new UnauthenticatedError('Authentication invalid'));
   }
-};
-
-// Mock authentication middleware until real auth is ready
-export const mockAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(401).json({
-      success: false,
-      error: 'Authentication required',
-    });
-  }
-
-  req.user = {
-    id: MOCK_USER.ID,
-    email: MOCK_USER.EMAIL,
-    displayName: 'Mock User',
-    avatarId: '',
-  };
-  next();
 };
