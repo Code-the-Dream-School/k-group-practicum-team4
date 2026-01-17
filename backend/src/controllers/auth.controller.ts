@@ -20,9 +20,13 @@ export const register = async (
     });
   } catch (error: any) {
     if (error?.code === 11000) {
-      return next(new BadRequestError(`Duplicate value entered for ${Object.keys(
-        error.keyValue
-      )} field, please choose another value`));
+      return next(
+        new BadRequestError(
+          `Duplicate value entered for ${Object.keys(
+            error.keyValue
+          )} field, please choose another value`
+        )
+      );
     }
 
     return next(error);
@@ -44,20 +48,24 @@ export const login = async (
     return next(new BadRequestError('Please provide email and password'));
   }
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    return next(new UnauthenticatedError('Invalid Credentials'));
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return next(new UnauthenticatedError('Invalid Credentials'));
+    }
+
+    const isPasswordCorrect = await user.comparePassword(password);
+    if (!isPasswordCorrect) {
+      return next(new UnauthenticatedError('Invalid Credentials'));
+    }
+
+    const token = user.createJWT();
+
+    res.status(StatusCodes.OK).json({
+      user: { displayName: user.displayName },
+      token,
+    });
+  } catch (error: any) {
+    return next(error);
   }
-
-  const isPasswordCorrect = await user.comparePassword(password);
-  if (!isPasswordCorrect) {
-    return next(new UnauthenticatedError('Invalid Credentials'));
-  }
-
-  const token = user.createJWT();
-
-  res.status(StatusCodes.OK).json({
-    user: { displayName: user.displayName },
-    token,
-  });
 };
