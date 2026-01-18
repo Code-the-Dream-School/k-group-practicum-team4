@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { generateText } from "../ai/llm";
+import { generateStudyAssistantResponse } from "../services/aiAssistant";
 
 export const askAi = async (req: Request, res: Response) => {
   try {
@@ -8,8 +8,7 @@ export const askAi = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Prompt is required." });
     }
 
-    const text = await generateText({ prompt });
-    const responseText = text?.trim() || "No response generated.";
+    const responseText = await generateStudyAssistantResponse(prompt);
 
     return res.status(200).json({ response: responseText });
   } catch (error) {

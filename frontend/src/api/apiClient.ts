@@ -70,6 +70,7 @@ type CreateResourceResponse = {
 type UpdateResourceBody = {
   title?: string;
   tags?: string[];
+  textContent?: string;
 };
 
 type UpdateResourceResponse = {

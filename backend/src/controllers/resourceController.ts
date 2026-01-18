@@ -153,7 +153,7 @@ export const updateResource = async (
     if (!userId) return;
 
     const { id } = req.params;
-    const { title, tags: rawTags } = req.body;
+    const { title, tags: rawTags, textContent } = req.body;
 
     const updateData: Record<string, any> = {};
 
@@ -181,10 +181,22 @@ export const updateResource = async (
       updateData.tags = validateTags(parsedTags);
     }
 
+    if (textContent !== undefined) {
+      const contentValidation = validateTextContent(textContent);
+      if (!contentValidation.isValid) {
+        return res.status(400).json({
+          success: false,
+          error: contentValidation.error,
+        });
+      }
+      updateData.textContent = normalizeText(textContent);
+    }
+
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        error: "No valid fields to update. Only title and tags can be updated.",
+        error:
+          "No valid fields to update. Only title, tags, and text content can be updated.",
       });
     }
 

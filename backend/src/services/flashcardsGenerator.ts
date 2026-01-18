@@ -22,52 +22,115 @@ const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
 
   const cards: GeneratedFlashcard[] = [];
   let pendingQuestion: string | null = null;
+  let awaitingQuestionText = false;
+  let awaitingAnswerText = false;
+  let answerLines: string[] = [];
 
   const inlineQa =
     /^(?:q(?:uestion)?\s*\d*|\d+)\s*[:.)-]\s*(.+?)\s+a(?:nswer)?\s*\d*\s*[:.-]\s*(.+)$/i;
-  const questionLine = /^(?:q(?:uestion)?\s*\d*|\d+)\s*[:.)-]\s*(.+)$/i;
-  const answerLine = /^a(?:nswer)?\s*\d*\s*[:.-]\s*(.+)$/i;
+  const questionPrefix = /^(?:q(?:uestion)?|q)\s*\d*\s*[:.)-]?\s*(.*)$/i;
+  const answerPrefix = /^(?:a(?:nswer)?|a)\s*\d*\s*[:.)-]?\s*(.*)$/i;
+  const questionNumericLine = /^(?:\d+)\s*[:.)-]\s*(.+)$/i;
+
+  const flushAnswer = () => {
+    if (pendingQuestion && answerLines.length > 0) {
+      cards.push({
+        front: pendingQuestion,
+        back: answerLines.join("\n"),
+        explanation: "-",
+      });
+      pendingQuestion = null;
+      answerLines = [];
+    }
+  };
 
   for (const line of lines) {
     const inlineMatch = line.match(inlineQa);
     if (inlineMatch) {
+      flushAnswer();
       cards.push({
         front: inlineMatch[1].trim(),
         back: inlineMatch[2].trim(),
         explanation: "-",
       });
       pendingQuestion = null;
+      awaitingQuestionText = false;
+      awaitingAnswerText = false;
+      answerLines = [];
       continue;
     }
 
-    const questionMatch = line.match(questionLine);
+    const questionMatch = line.match(questionPrefix);
     if (questionMatch) {
-      pendingQuestion = questionMatch[1].trim();
+      const questionText = questionMatch[1].trim();
+      if (!questionText) {
+        flushAnswer();
+        awaitingQuestionText = true;
+        awaitingAnswerText = false;
+        answerLines = [];
+        continue;
+      }
+      flushAnswer();
+      pendingQuestion = questionText;
+      awaitingQuestionText = false;
+      awaitingAnswerText = false;
+      answerLines = [];
       continue;
     }
 
-    const answerMatch = line.match(answerLine);
-    if (answerMatch) {
-      if (pendingQuestion) {
-        cards.push({
-          front: pendingQuestion,
-          back: answerMatch[1].trim(),
-          explanation: "-",
-        });
-        pendingQuestion = null;
+    const numericQuestionMatch = line.match(questionNumericLine);
+    if (numericQuestionMatch) {
+      if (pendingQuestion && answerLines.length > 0) {
+        answerLines.push(line);
+        continue;
       }
+      flushAnswer();
+      pendingQuestion = numericQuestionMatch[1].trim();
+      awaitingQuestionText = false;
+      awaitingAnswerText = false;
+      answerLines = [];
+      continue;
+    }
+
+    if (awaitingQuestionText) {
+      flushAnswer();
+      pendingQuestion = line.trim();
+      awaitingQuestionText = false;
+      continue;
+    }
+
+    const answerMatch = line.match(answerPrefix);
+    if (answerMatch) {
+      const answerText = answerMatch[1].trim();
+      if (!answerText) {
+        awaitingAnswerText = true;
+        continue;
+      }
+      if (pendingQuestion) {
+        answerLines = [answerText];
+      }
+      awaitingAnswerText = false;
+      continue;
+    }
+
+    if (awaitingAnswerText) {
+      if (pendingQuestion) {
+        answerLines = [line];
+      }
+      awaitingAnswerText = false;
       continue;
     }
 
     if (pendingQuestion) {
-      cards.push({
-        front: pendingQuestion,
-        back: line,
-        explanation: "-",
-      });
-      pendingQuestion = null;
+      if (answerLines.length > 0) {
+        answerLines.push(line);
+      } else {
+        answerLines = [line];
+      }
     }
   }
+
+  flushAnswer();
 
   return cards.filter((card) => card.front && card.back);
 };

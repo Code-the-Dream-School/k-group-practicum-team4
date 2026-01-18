@@ -88,7 +88,9 @@ function ResourcePage() {
             <div className="text-sm text-gray-500">Loading…</div>
           ) : activeTab === "resource" && resource ? (
             <article className="max-w-3xl rounded-2xl border border-white/60 bg-white/90 p-6 text-base leading-7 text-slate-700 shadow-[var(--shadow-card)]">
-              <div className="whitespace-pre-wrap">{resource.textContent}</div>
+              <div className="max-h-96 overflow-y-auto pr-2">
+                <div className="whitespace-pre-wrap">{resource.textContent}</div>
+              </div>
             </article>
           ) : activeTab === "flashcards" && resource ? (
             <ResourceFlashcardsTab resourceId={resource._id} resourceTitle={resource.title} />

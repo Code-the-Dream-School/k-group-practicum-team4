@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   BookOpen,
@@ -50,6 +50,8 @@ function LibraryPage() {
   const [aiResponse, setAiResponse] = useState("");
   const [aiError, setAiError] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const copyTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +79,14 @@ function LibraryPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (copyTimeoutRef.current) {
+      window.clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
+    }
+    setIsCopied(false);
+  }, [aiResponse]);
 
   const tags = useMemo(() => {
     const unique = new Set<string>();
@@ -149,6 +159,7 @@ function LibraryPage() {
         await updateResource(editingId, {
           title: newTitle.trim(),
           tags: newTags,
+          textContent: newText.trim(),
         });
       } else {
         if (!newText.trim()) {
@@ -200,6 +211,23 @@ function LibraryPage() {
       setAiError(err instanceof Error ? err.message : "Unable to reach AI.");
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  const handleCopyResponse = async () => {
+    if (!aiResponse) return;
+    try {
+      await navigator.clipboard.writeText(aiResponse);
+      setIsCopied(true);
+      if (copyTimeoutRef.current) {
+        window.clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = window.setTimeout(() => {
+        setIsCopied(false);
+        copyTimeoutRef.current = null;
+      }, 2000);
+    } catch {
+      setIsCopied(false);
     }
   };
 
@@ -331,22 +359,18 @@ function LibraryPage() {
                           >
                             {resource.title}
                           </Link>
-                          <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--color-primary-strong)]">
-                            {resource.tags.length > 0 ? (
-                              resource.tags.map((tag) => (
+                          {resource.tags.length > 0 ? (
+                            <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[var(--color-primary-strong)]">
+                              {resource.tags.map((tag) => (
                                 <span
                                   key={`${resource._id}-${tag}`}
                                   className="rounded-full bg-[var(--color-primary-muted)] px-3 py-1"
                                 >
                                   {tag}
                                 </span>
-                              ))
-                            ) : (
-                              <span className="rounded-full bg-[var(--color-primary-muted)] px-3 py-1">
-                                Untagged
-                              </span>
-                            )}
-                          </div>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -392,7 +416,20 @@ function LibraryPage() {
                     {aiError}
                   </p>
                 ) : null}
-                {aiResponse ? <p className="whitespace-pre-wrap">{aiResponse}</p> : null}
+                {aiResponse ? (
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={handleCopyResponse}
+                      className="inline-flex items-center justify-center rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-slate-50"
+                    >
+                      {isCopied ? "Copied!" : "Copy"}
+                    </button>
+                    <div className="max-h-72 overflow-y-auto pr-2">
+                      <p className="whitespace-pre-wrap">{aiResponse}</p>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <div className="mt-10">
@@ -499,7 +536,7 @@ function LibraryPage() {
                 </div>
               ) : null}
 
-              <div className={editingId ? "hidden" : ""}>
+              <div>
                 <textarea
                   placeholder="Paste your Text here"
                   value={newText}
