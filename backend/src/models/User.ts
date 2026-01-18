@@ -36,6 +36,7 @@ const UserSchema: Schema<IUser> = new Schema<IUser>({
     type: String,
     required: [true, 'Please provide password'],
     minlength: 6,
+    select: false, // Never return password by default
   },
   avatarId: {
     type: String,
