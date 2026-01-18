@@ -1,6 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 
 export interface IUser extends Document {
   displayName: string;
@@ -66,11 +66,14 @@ UserSchema.pre<IUser>('save', async function (next) {
  * Create JWT token for user
  */
 UserSchema.methods.createJWT = function (): string {
-  if (!process.env.JWT_SECRET) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
     throw new Error('JWT_SECRET is not defined');
   }
 
-  const secret: string = process.env.JWT_SECRET;
+  const options = {
+    expiresIn: process.env.JWT_LIFETIME || '24h',
+  } as SignOptions;
 
   return jwt.sign(
     {
@@ -80,9 +83,7 @@ UserSchema.methods.createJWT = function (): string {
       avatarId: this.avatarId,
     },
     secret,
-    {
-      expiresIn: process.env.JWT_LIFETIME || '24h',
-    }
+    options
   );
 };
 
@@ -90,7 +91,7 @@ UserSchema.methods.createJWT = function (): string {
  * Compare candidate password with stored hash
  */
 UserSchema.methods.comparePassword = async function (
-  candidatePassword: string
+  candidatePassword: string,
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };

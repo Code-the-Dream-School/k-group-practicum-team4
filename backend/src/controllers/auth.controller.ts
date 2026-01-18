@@ -49,7 +49,7 @@ export const login = async (
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return next(new UnauthenticatedError('Invalid Credentials'));
     }
