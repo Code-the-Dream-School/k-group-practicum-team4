@@ -5,11 +5,6 @@ export const LIMITS = {
   TAG_MAX_LENGTH: 30,
 } as const;
 
-export const MOCK_USER = {
-  ID: process.env.MOCK_USER_ID || "test-user-dev-123",
-  EMAIL: "test@example.com",
-} as const;
-
 export const validateEnv = () => {
   const required = ["MONGO_URI"];
   const missing = required.filter((key) => !process.env[key]);
