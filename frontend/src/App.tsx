@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import {Navigate, Route, Routes} from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUp";
@@ -7,7 +8,7 @@ import LibraryPage from "./pages/LibraryPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
 import { getAuthToken } from "./api/apiClient";
 
-const RequireAuth = ({ children }: { children: JSX.Element }) => {
+const RequireAuth = ({ children }: { children: ReactElement }) => {
     const token = getAuthToken();
     if (!token) {
         return <Navigate to="/signin" replace />;
