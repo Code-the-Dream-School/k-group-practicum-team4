@@ -45,3 +45,39 @@ body {
 .animate-fade-slide {
   animation: fade-slide-up 320ms ease-out;
 }
+
+@keyframes sparkle-twinkle {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.92);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 0.25;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes sparkle-float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes dashboard-wiggle {
+  0%   { transform: rotate(0deg) translateY(0); }
+  18%  { transform: rotate(-0.6deg) translateY(-2px); }
+  36%  { transform: rotate(0.6deg) translateY(1px); }
+  54%  { transform: rotate(-0.4deg) translateY(-1px); }
+  72%  { transform: rotate(0.4deg) translateY(1px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
