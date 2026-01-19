@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import { Resource } from "../models/Resource";
 import { LIMITS } from "../config/constants";
 import {
@@ -9,7 +10,10 @@ import {
   normalizeText,
 } from "../utils/validation";
 
-const requireUserId = (req: Request, res: Response): string | null => {
+const requireUserObjectId = (
+  req: Request,
+  res: Response
+): mongoose.Types.ObjectId | null => {
   const userId = req.user?.id;
   if (!userId) {
     res.status(401).json({
@@ -18,7 +22,14 @@ const requireUserId = (req: Request, res: Response): string | null => {
     });
     return null;
   }
-  return userId;
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    res.status(400).json({
+      success: false,
+      error: "Invalid user ID",
+    });
+    return null;
+  }
+  return new mongoose.Types.ObjectId(userId);
 };
 
 const handleCastError = (error: any, res: Response): boolean => {
@@ -39,8 +50,8 @@ export const createResource = async (
   next: NextFunction
 ) => {
   try {
-    const userId = requireUserId(req, res);
-    if (!userId) return;
+    const ownerId = requireUserObjectId(req, res);
+    if (!ownerId) return;
 
     const { title, tags: rawTags, textContent } = req.body;
 
@@ -69,7 +80,7 @@ export const createResource = async (
     }
 
     const resource = new Resource({
-      ownerId: userId,
+      ownerId,
       title: normalizeText(title),
       tags: validateTags(parsedTags),
       textContent: normalizeText(textContent),
@@ -93,10 +104,10 @@ export const getUserResources = async (
   next: NextFunction
 ) => {
   try {
-    const userId = requireUserId(req, res);
-    if (!userId) return;
+    const ownerId = requireUserObjectId(req, res);
+    if (!ownerId) return;
 
-    const resources = await Resource.find({ ownerId: userId })
+    const resources = await Resource.find({ ownerId })
       .sort({ createdAt: -1 })
       .select("-__v")
       .lean();
@@ -117,12 +128,12 @@ export const getResourceById = async (
   next: NextFunction
 ) => {
   try {
-    const userId = requireUserId(req, res);
-    if (!userId) return;
+    const ownerId = requireUserObjectId(req, res);
+    if (!ownerId) return;
 
     const { id } = req.params;
 
-    const resource = await Resource.findOne({ _id: id, ownerId: userId })
+    const resource = await Resource.findOne({ _id: id, ownerId })
       .select("-__v")
       .lean();
 
@@ -149,8 +160,8 @@ export const updateResource = async (
   next: NextFunction
 ) => {
   try {
-    const userId = requireUserId(req, res);
-    if (!userId) return;
+    const ownerId = requireUserObjectId(req, res);
+    if (!ownerId) return;
 
     const { id } = req.params;
     const { title, tags: rawTags, textContent } = req.body;
@@ -201,7 +212,7 @@ export const updateResource = async (
     }
 
     const updatedResource = await Resource.findOneAndUpdate(
-      { _id: id, ownerId: userId },
+      { _id: id, ownerId },
       updateData,
       { new: true }
     )
@@ -231,14 +242,14 @@ export const deleteResource = async (
   next: NextFunction
 ) => {
   try {
-    const userId = requireUserId(req, res);
-    if (!userId) return;
+    const ownerId = requireUserObjectId(req, res);
+    if (!ownerId) return;
 
     const { id } = req.params;
 
     const deletedResource = await Resource.findOneAndDelete({
       _id: id,
-      ownerId: userId,
+      ownerId,
     });
 
     if (!deletedResource) {

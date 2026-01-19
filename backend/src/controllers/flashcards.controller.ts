@@ -49,7 +49,7 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
     const countRaw = typeof body.count === 'number' ? body.count : 10;
     const count = Math.max(1, Math.min(30, Math.floor(countRaw)));
 
-    const resourceOwnerId = req.user?.id ?? ownerIdStr;
+    const resourceOwnerId = ownerId;
 
     const resourceByOwner = await Resource.findOne({
       _id: resourceIdStr,
