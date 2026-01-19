@@ -1,6 +1,7 @@
 import type {FormEvent} from "react";
 import {useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import {registerUser, setAuthFromToken} from "../api/apiClient";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import Header from "../components/Header";
@@ -12,14 +13,45 @@ function SignUpPage() {
     const [selectedAvatar, setSelectedAvatar] = useState<string>(avatars[0].id);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError("");
         setLoading(true);
 
-        // Placeholder for future API integration and validation.
-        window.setTimeout(() => setLoading(false), 500);
+        try {
+            const formData = new FormData(event.currentTarget);
+            const firstName = String(formData.get("firstName") || "").trim();
+            const lastName = String(formData.get("lastName") || "").trim();
+            const email = String(formData.get("email") || "").trim();
+            const password = String(formData.get("password") || "");
+            const confirmPassword = String(formData.get("confirmPassword") || "");
+
+            if (!firstName && !lastName) {
+                throw new Error("Please enter your name.");
+            }
+
+            if (password !== confirmPassword) {
+                throw new Error("Passwords do not match.");
+            }
+
+            const displayName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+            const {token} = await registerUser({
+                displayName,
+                email,
+                password,
+                avatarId: selectedAvatar,
+            });
+            setAuthFromToken(token);
+            navigate("/library");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Unable to create account.";
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

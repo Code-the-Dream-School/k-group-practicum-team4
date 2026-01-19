@@ -6,7 +6,7 @@ interface ISummary {
 }
 
 export interface IResource extends Document {
-  ownerId: string;
+  ownerId: mongoose.Types.ObjectId;
   title: string;
   tags: string[];
   textContent: string;
@@ -37,9 +37,9 @@ const SummarySchema = new Schema<ISummary>(
 const ResourceSchema = new Schema<IResource>(
   {
     ownerId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: [true, "Owner ID is required"],
-      trim: true,
       index: true,
     },
     title: {
