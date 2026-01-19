@@ -46,6 +46,5 @@ app.use("/api", authMiddleware, aiRoutes);
 
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
-const ciBreak: string = 123;
 
 export default app;
