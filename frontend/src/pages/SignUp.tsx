@@ -56,12 +56,12 @@ function SignUpPage() {
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
-            <Header secondaryCtaLabel="Sign in →" />
+            <Header secondaryCtaLabel="Sign in" />
 
             <main className="px-4">
                 <div className="mx-auto flex max-w-5xl flex-col items-center py-14">
                     <h1 className="mb-8 text-center text-3xl font-black tracking-tight text-[var(--color-text)] md:text-4xl">
-                        Sign up to App name
+                        Sign up to AI STUDY APP
                     </h1>
 
                     <Card>
@@ -70,7 +70,7 @@ function SignUpPage() {
                             <p className="mt-1 text-sm text-gray-500">
                                 Have an account?{" "}
                                 <Link to="/signin" className="font-semibold text-[var(--color-primary)] hover:underline">
-                                    Sign in →
+                                    Sign in
                                 </Link>
                             </p>
                         </div>

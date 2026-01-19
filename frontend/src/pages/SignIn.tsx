@@ -35,7 +35,7 @@ function SignInPage() {
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
-            <Header primaryCtaLabel="Sign up →" />
+            <Header primaryCtaLabel="Sign up" />
 
             <main className="px-4">
                 <div className="mx-auto flex max-w-5xl flex-col items-center py-14">
