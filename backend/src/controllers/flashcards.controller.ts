@@ -49,25 +49,19 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
     const countRaw = typeof body.count === 'number' ? body.count : 10;
     const count = Math.max(1, Math.min(30, Math.floor(countRaw)));
 
-    const resourceOwnerId = ownerId;
-
     const resourceByOwner = await Resource.findOne({
       _id: resourceIdStr,
-      ownerId: resourceOwnerId,
+      ownerId,
     })
       .select({ textContent: 1 })
       .lean();
 
-    const resource =
-      resourceByOwner ??
-      (await Resource.findById(resourceIdStr).select({ textContent: 1 }).lean());
-
-    if (!resource) {
+    if (!resourceByOwner) {
       return res.status(404).json({ message: 'Resource not found.' });
     }
 
     // generate flashcards from the resource textContent.
-    const text = (resource.textContent ?? '').trim();
+    const text = (resourceByOwner.textContent ?? '').trim();
     if (!text) {
       return res.status(400).json({
         message: 'Resource textContent is empty. Upload/paste text into the resource first.',

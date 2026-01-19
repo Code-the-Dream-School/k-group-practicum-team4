@@ -84,6 +84,15 @@ export const clearAuthUser = (): void => {
   window.localStorage.removeItem(AUTH_USER_KEY);
 };
 
+const handleUnauthorized = (): void => {
+  clearAuthToken();
+  clearAuthUser();
+  if (typeof window === "undefined") return;
+  if (window.location.pathname !== "/signin") {
+    window.location.assign("/signin");
+  }
+};
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getAuthToken();
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -99,6 +108,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const data = text ? JSON.parse(text) : null;
 
   if (!res.ok) {
+    if (res.status === 401) {
+      handleUnauthorized();
+    }
     const message =
       data?.error ||
       data?.message ||
