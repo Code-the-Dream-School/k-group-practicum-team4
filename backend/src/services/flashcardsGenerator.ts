@@ -48,9 +48,18 @@ const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
     const inlineMatch = line.match(inlineQa);
     if (inlineMatch) {
       flushAnswer();
+      const front = (inlineMatch[1] ?? "").trim();
+      const back = (inlineMatch[2] ?? "").trim();
+      if (!front || !back) {
+        pendingQuestion = null;
+        awaitingQuestionText = false;
+        awaitingAnswerText = false;
+        answerLines = [];
+        continue;
+      }
       cards.push({
-        front: inlineMatch[1].trim(),
-        back: inlineMatch[2].trim(),
+        front,
+        back,
         explanation: "-",
       });
       pendingQuestion = null;
@@ -62,7 +71,7 @@ const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
 
     const questionMatch = line.match(questionPrefix);
     if (questionMatch) {
-      const questionText = questionMatch[1].trim();
+      const questionText = (questionMatch[1] ?? "").trim();
       if (!questionText) {
         flushAnswer();
         awaitingQuestionText = true;
@@ -85,7 +94,7 @@ const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
         continue;
       }
       flushAnswer();
-      pendingQuestion = numericQuestionMatch[1].trim();
+      pendingQuestion = (numericQuestionMatch[1] ?? "").trim();
       awaitingQuestionText = false;
       awaitingAnswerText = false;
       answerLines = [];
@@ -101,7 +110,7 @@ const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
 
     const answerMatch = line.match(answerPrefix);
     if (answerMatch) {
-      const answerText = answerMatch[1].trim();
+      const answerText = (answerMatch[1] ?? "").trim();
       if (!answerText) {
         awaitingAnswerText = true;
         continue;

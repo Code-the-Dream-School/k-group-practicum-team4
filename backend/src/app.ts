@@ -8,9 +8,8 @@ import rateLimit from "express-rate-limit";
 import authRouter from "./routes/auth";
 import resourceRoutes from "./routes/resourceRoutes";
 import flashcardsRoutes from "./routes/flashcards.routes";
-import aiRoutes from "./routes/ai.routes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
-import { auth as authMiddleware  } from "./middleware/auth";
+import { auth as authMiddleware } from "./middleware/auth";
 
 const app = express();
 
