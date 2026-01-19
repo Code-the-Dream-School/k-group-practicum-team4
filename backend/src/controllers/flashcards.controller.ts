@@ -6,6 +6,9 @@ import { FlashcardModel } from '../models/Flashcard';
 import { Resource } from '../models/Resource';
 import { generateFlashcardsFromText } from '../services/flashcardsGenerator';
 
+const getOwnerId = (req: Request): string | undefined =>
+  req.user?.id ?? req.ownerId;
+
 export const generateFlashcardsSet = async (req: Request, res: Response) => {
 
   let ownerIdForRollback: mongoose.Types.ObjectId | null = null;
@@ -14,10 +17,10 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
   try {
     // Flashcards currently rely on req.ownerId (dev placeholder).
     // In real auth, this would come from a decoded JWT / session.
-    const ownerIdStr = req.ownerId;
+    const ownerIdStr = getOwnerId(req);
 
     if (!ownerIdStr) {
-      return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
+      return res.status(401).json({ message: 'Unauthorized.' });
     }
 
     // Flashcards models expect ownerId to be a Mongo ObjectId.
@@ -129,9 +132,9 @@ export const generateFlashcardsSet = async (req: Request, res: Response) => {
 
 export const listFlashcardsSetsByResource = async (req: Request, res: Response) => {
   try {
-    const ownerIdStr = req.ownerId;
+    const ownerIdStr = getOwnerId(req);
     if (!ownerIdStr) {
-      return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
+      return res.status(401).json({ message: 'Unauthorized.' });
     }
     if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
       return res.status(400).json({ message: 'Invalid ownerId.' });
@@ -166,9 +169,9 @@ export const listFlashcardsSetsByResource = async (req: Request, res: Response) 
 
 export const listAllFlashcardSets = async (req: Request, res: Response) => {
   try {
-    const ownerIdStr = req.ownerId;
+    const ownerIdStr = getOwnerId(req);
     if (!ownerIdStr) {
-      return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
+      return res.status(401).json({ message: 'Unauthorized.' });
     }
     if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
       return res.status(400).json({ message: 'Invalid ownerId.' });
@@ -217,9 +220,9 @@ export const listAllFlashcardSets = async (req: Request, res: Response) => {
 
 export const getFlashcardsSet = async (req: Request, res: Response) => {
   try {
-    const ownerIdStr = req.ownerId;
+    const ownerIdStr = getOwnerId(req);
     if (!ownerIdStr) {
-      return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
+      return res.status(401).json({ message: 'Unauthorized.' });
     }
     if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
       return res.status(400).json({ message: 'Invalid ownerId.' });
@@ -261,9 +264,9 @@ export const getFlashcardsSet = async (req: Request, res: Response) => {
 
 export const deleteFlashcardsSet = async (req: Request, res: Response) => {
   try {
-    const ownerIdStr = req.ownerId;
+    const ownerIdStr = getOwnerId(req);
     if (!ownerIdStr) {
-      return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
+      return res.status(401).json({ message: 'Unauthorized.' });
     }
     if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
       return res.status(400).json({ message: 'Invalid ownerId.' });
