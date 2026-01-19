@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import Tabs from "../components/Tabs";
 import ResourceFlashcardsTab from "../components/ResourceFlashcardsTab";
 import { getResourceById, type ResourceDto } from "../api/apiClient";
@@ -10,7 +11,7 @@ function ResourcePage() {
   const { id } = useParams();
   const resourceId = id ?? "";
 
-  const [activeTab, setActiveTab] = useState<TabKey>("flashcards");
+  const [activeTab, setActiveTab] = useState<TabKey>("resource");
   const [resource, setResource] = useState<ResourceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +55,13 @@ function ResourcePage() {
           {/* Header like in mock (always shown) */}
           <div className="mb-10 flex items-baseline gap-6">
             <h1 className="text-5xl font-black tracking-tight">{pageTitle}</h1>
-            <div className="text-sm text-gray-500">Back to My Library</div>
+            <Link
+              to="/library"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-primary-muted)]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to My Library
+            </Link>
           </div>
 
           {/* Tabs (always shown) */}
@@ -79,8 +86,14 @@ function ResourcePage() {
             </div>
           ) : isLoading ? (
             <div className="text-sm text-gray-500">Loading…</div>
+          ) : activeTab === "resource" && resource ? (
+            <article className="max-w-3xl rounded-2xl border border-white/60 bg-white/90 p-6 text-base leading-7 text-slate-700 shadow-[var(--shadow-card)]">
+              <div className="max-h-96 overflow-y-auto pr-2">
+                <div className="whitespace-pre-wrap">{resource.textContent}</div>
+              </div>
+            </article>
           ) : activeTab === "flashcards" && resource ? (
-            <ResourceFlashcardsTab resourceId={resource._id} />
+            <ResourceFlashcardsTab resourceId={resource._id} resourceTitle={resource.title} />
           ) : (
             <div className="text-sm text-gray-500">Not implemented yet.</div>
           )}

@@ -14,6 +14,127 @@ const stubCards = (count: number): GeneratedFlashcard[] =>
     explanation: "Short explanation (stub).",
   }));
 
+const parseQaPairs = (raw: string): GeneratedFlashcard[] => {
+  const lines = (raw || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const cards: GeneratedFlashcard[] = [];
+  let pendingQuestion: string | null = null;
+  let awaitingQuestionText = false;
+  let awaitingAnswerText = false;
+  let answerLines: string[] = [];
+
+  const inlineQa =
+    /^(?:q(?:uestion)?\s*\d*|\d+)\s*[:.)-]\s*(.+?)\s+a(?:nswer)?\s*\d*\s*[:.-]\s*(.+)$/i;
+  const questionPrefix = /^(?:q(?:uestion)?|q)\s*\d*\s*[:.)-]?\s*(.*)$/i;
+  const answerPrefix = /^(?:a(?:nswer)?|a)\s*\d*\s*[:.)-]?\s*(.*)$/i;
+  const questionNumericLine = /^(?:\d+)\s*[:.)-]\s*(.+)$/i;
+
+  const flushAnswer = () => {
+    if (pendingQuestion && answerLines.length > 0) {
+      cards.push({
+        front: pendingQuestion,
+        back: answerLines.join("\n"),
+        explanation: "-",
+      });
+      pendingQuestion = null;
+      answerLines = [];
+    }
+  };
+
+  for (const line of lines) {
+    const inlineMatch = line.match(inlineQa);
+    if (inlineMatch) {
+      flushAnswer();
+      cards.push({
+        front: inlineMatch[1].trim(),
+        back: inlineMatch[2].trim(),
+        explanation: "-",
+      });
+      pendingQuestion = null;
+      awaitingQuestionText = false;
+      awaitingAnswerText = false;
+      answerLines = [];
+      continue;
+    }
+
+    const questionMatch = line.match(questionPrefix);
+    if (questionMatch) {
+      const questionText = questionMatch[1].trim();
+      if (!questionText) {
+        flushAnswer();
+        awaitingQuestionText = true;
+        awaitingAnswerText = false;
+        answerLines = [];
+        continue;
+      }
+      flushAnswer();
+      pendingQuestion = questionText;
+      awaitingQuestionText = false;
+      awaitingAnswerText = false;
+      answerLines = [];
+      continue;
+    }
+
+    const numericQuestionMatch = line.match(questionNumericLine);
+    if (numericQuestionMatch) {
+      if (pendingQuestion && answerLines.length > 0) {
+        answerLines.push(line);
+        continue;
+      }
+      flushAnswer();
+      pendingQuestion = numericQuestionMatch[1].trim();
+      awaitingQuestionText = false;
+      awaitingAnswerText = false;
+      answerLines = [];
+      continue;
+    }
+
+    if (awaitingQuestionText) {
+      flushAnswer();
+      pendingQuestion = line.trim();
+      awaitingQuestionText = false;
+      continue;
+    }
+
+    const answerMatch = line.match(answerPrefix);
+    if (answerMatch) {
+      const answerText = answerMatch[1].trim();
+      if (!answerText) {
+        awaitingAnswerText = true;
+        continue;
+      }
+      if (pendingQuestion) {
+        answerLines = [answerText];
+      }
+      awaitingAnswerText = false;
+      continue;
+    }
+
+    if (awaitingAnswerText) {
+      if (pendingQuestion) {
+        answerLines = [line];
+      }
+      awaitingAnswerText = false;
+      continue;
+    }
+
+    if (pendingQuestion) {
+      if (answerLines.length > 0) {
+        answerLines.push(line);
+      } else {
+        answerLines = [line];
+      }
+    }
+  }
+
+  flushAnswer();
+
+  return cards.filter((card) => card.front && card.back);
+};
+
 const stripFences = (raw: string) =>
   (raw || "")
     .trim()
@@ -88,7 +209,15 @@ export const generateFlashcardsFromText = async (params: {
   const text = (params.text || "").trim();
   const count = Math.max(1, Math.min(30, Math.floor(params.count)));
 
-  if (!text || mode === "stub") return stubCards(count);
+  if (!text) return stubCards(count);
+
+  const parsedCards = parseQaPairs(text);
+  if (parsedCards.length > 0) {
+    if (parsedCards.length >= count) return parsedCards.slice(0, count);
+    return parsedCards;
+  }
+
+  if (mode === "stub") return stubCards(count);
 
   const prompt = `
 You are generating study flashcards.

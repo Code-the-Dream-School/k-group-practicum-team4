@@ -12,9 +12,10 @@ import { useFlashcardSets } from "./flashcards/useFlashcardSets";
 
 type Props = {
   resourceId: string;
+  resourceTitle?: string;
 };
 
-export default function ResourceFlashcardsTab({ resourceId }: Props) {
+export default function ResourceFlashcardsTab({ resourceId, resourceTitle }: Props) {
   const { sets, countsBySetId, isLoading, error, reload } = useFlashcardSets(resourceId);
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,7 +58,7 @@ export default function ResourceFlashcardsTab({ resourceId }: Props) {
   async function handleGenerate() {
     try {
       setIsGenerating(true);
-      await generateFlashcards({ resourceId });
+      await generateFlashcards({ resourceId, title: resourceTitle });
       await reload();
     } finally {
       setIsGenerating(false);

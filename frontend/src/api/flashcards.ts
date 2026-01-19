@@ -49,6 +49,23 @@ export async function getFlashcardSetsByResource(
 }
 
 /**
+ * GET /api/flashcard-sets
+ */
+export type FlashcardSetSummaryDto = {
+  id: string;
+  title: string;
+  sequenceNumber: number;
+  createdAt: string;
+  resourceId: string;
+  resourceTitle: string;
+  cardsCount: number;
+};
+
+export async function getAllFlashcardSets(): Promise<FlashcardSetSummaryDto[]> {
+  return request<FlashcardSetSummaryDto[]>(`/api/flashcard-sets`);
+}
+
+/**
  * GET /api/flashcard-sets/:setId
  */
 export type FlashcardDto = {

@@ -81,7 +81,9 @@ export default function FlashcardPlayer({ set, onBack }: Props) {
                   className="absolute inset-0 rounded-2xl bg-[var(--color-primary)] text-white shadow-[var(--shadow-card)] flex items-center justify-center px-10 text-center text-lg font-semibold"
                   style={{ backfaceVisibility: "hidden" }}
                 >
-                  {card.front}
+                  <div className="max-h-[200px] w-full overflow-y-auto pr-2 break-words">
+                    {card.front}
+                  </div>
                 </div>
 
                 <div
@@ -92,7 +94,7 @@ export default function FlashcardPlayer({ set, onBack }: Props) {
                   }}
                 >
                   <div className="w-full">
-                    <div className="text-base font-medium leading-relaxed">
+                    <div className="max-h-[160px] overflow-y-auto pr-2 text-base font-medium leading-relaxed break-words">
                       {card.back}
                     </div>
 

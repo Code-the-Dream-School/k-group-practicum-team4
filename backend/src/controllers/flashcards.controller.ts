@@ -164,6 +164,57 @@ export const listFlashcardsSetsByResource = async (req: Request, res: Response) 
   }
 };
 
+export const listAllFlashcardSets = async (req: Request, res: Response) => {
+  try {
+    const ownerIdStr = req.ownerId;
+    if (!ownerIdStr) {
+      return res.status(401).json({ message: 'Unauthorized (DEV_USER_ID is missing).' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
+      return res.status(400).json({ message: 'Invalid ownerId.' });
+    }
+
+    const ownerId = new mongoose.Types.ObjectId(ownerIdStr);
+
+    const sets = await FlashcardSetModel.find({ ownerId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const resourceIds = Array.from(new Set(sets.map((set) => set.resourceId.toString())));
+    const resources = await Resource.find({ _id: { $in: resourceIds } })
+      .select({ title: 1 })
+      .lean();
+
+    const titlesById = new Map(resources.map((r) => [r._id.toString(), r.title]));
+
+    const counts = await Promise.all(
+      sets.map((set) =>
+        FlashcardModel.countDocuments({ setId: set._id, ownerId }).then((count) => ({
+          setId: set._id.toString(),
+          count,
+        }))
+      )
+    );
+
+    const countsById = new Map(counts.map((item) => [item.setId, item.count]));
+
+    return res.json(
+      sets.map((set) => ({
+        id: set._id.toString(),
+        title: set.title,
+        sequenceNumber: set.sequenceNumber,
+        createdAt: set.createdAt,
+        resourceId: set.resourceId.toString(),
+        resourceTitle: titlesById.get(set.resourceId.toString()) || 'Untitled Resource',
+        cardsCount: countsById.get(set._id.toString()) ?? 0,
+      }))
+    );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Unknown error';
+    return res.status(500).json({ message: msg });
+  }
+};
+
 export const getFlashcardsSet = async (req: Request, res: Response) => {
   try {
     const ownerIdStr = req.ownerId;
