@@ -6,12 +6,8 @@ import {
   updateResource,
   deleteResource,
 } from "../controllers/resourceController";
-import { mockAuth } from "../middleware/auth";
 
 const router = express.Router();
-
-// Apply mock auth to all resource routes (replace with real auth middleware later)
-router.use(mockAuth);
 
 router
   .route("/")

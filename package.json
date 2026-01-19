@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/http-status-codes": "^1.2.0",
+    "@types/jsonwebtoken": "^8.5.9"
+  }
+}
