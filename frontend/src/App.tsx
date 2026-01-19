@@ -23,7 +23,11 @@ function App() {
             <Route path="/" element={<SignUpPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/signin" element={<SignInPage />} />
-            <Route path="/library" element={<LibraryPage />} />
+            <Route path="/library" element={
+                <RequireAuth>
+                    <LibraryPage />
+                </RequireAuth>
+            } />
             <Route path="/flashcards" element={
                 <RequireAuth>
                     <FlashcardsPage />
