@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Edit3,
@@ -15,8 +15,12 @@ import {
   X,
 } from "lucide-react";
 import Button from "../components/Button";
+import { avatars } from "../data/avatars";
 import {
   askAi,
+  clearAuthToken,
+  clearAuthUser,
+  getAuthUser,
   createResource,
   deleteResource,
   getUserResources,
@@ -32,6 +36,22 @@ const navItems = [
 ];
 
 function LibraryPage() {
+  const navigate = useNavigate();
+  const authUser = getAuthUser();
+  const displayName =
+    authUser?.displayName?.trim() ||
+    authUser?.displayName ||
+    "User";
+  const displayLabel = (() => {
+    const parts = displayName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0]} ${parts[1][0]?.toUpperCase()}.`;
+    }
+    return displayName;
+  })();
+  const avatarSrc = authUser?.avatarId
+    ? avatars.find((avatar) => avatar.id === authUser.avatarId)?.src
+    : null;
   const [resources, setResources] = useState<ResourceDto[]>([]);
   const [activeTag, setActiveTag] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -231,6 +251,12 @@ function LibraryPage() {
     }
   };
 
+  const handleLogout = () => {
+    clearAuthToken();
+    clearAuthUser();
+    navigate("/signin");
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
       <header className="bg-[var(--color-primary)] text-white shadow-lg">
@@ -260,13 +286,22 @@ function LibraryPage() {
 
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-base font-semibold">
-                <Sparkles className="h-5 w-5" />
+              <span className="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/15 text-base font-semibold">
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt={displayLabel}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Sparkles className="h-5 w-5" />
+                )}
               </span>
-              <div className="font-semibold">User Name L.</div>
+              <div className="font-semibold">{displayLabel}</div>
             </div>
             <button
               type="button"
+              onClick={handleLogout}
               className="inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/80 transition hover:text-white"
             >
               Logout

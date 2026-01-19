@@ -1,6 +1,7 @@
 import type {FormEvent} from "react";
 import {useState} from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import {loginUser, setAuthFromToken} from "../api/apiClient";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import Header from "../components/Header";
@@ -9,19 +10,32 @@ import Input from "../components/Input";
 function SignInPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError("");
         setLoading(true);
 
-        // Placeholder for future API integration and validation.
-        window.setTimeout(() => setLoading(false), 500);
+        try {
+            const formData = new FormData(event.currentTarget);
+            const email = String(formData.get("email") || "").trim();
+            const password = String(formData.get("password") || "");
+
+            const {token} = await loginUser({email, password});
+            setAuthFromToken(token);
+            navigate("/library");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Unable to sign in.";
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
-            <Header primaryCtaLabel="Sign up →" />
+            <Header primaryCtaLabel="Sign up" />
 
             <main className="px-4">
                 <div className="mx-auto flex max-w-5xl flex-col items-center py-14">

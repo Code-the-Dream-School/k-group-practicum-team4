@@ -41,6 +41,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/resources", authMiddleware, resourceRoutes);
 app.use("/api", authMiddleware, flashcardsRoutes);
+app.use("/api", authMiddleware, aiRoutes);
 
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
