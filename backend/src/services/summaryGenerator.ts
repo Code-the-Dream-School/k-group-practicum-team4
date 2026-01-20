@@ -53,18 +53,30 @@ ${cleanedText}
 Summary:
 `.trim();
 
-  const raw = await generateText({ prompt });
-  const summary = raw?.trim() || "";
+  try {
+    const raw = await generateText({ prompt });
+    const summary = raw?.trim() || "";
 
-  if (!summary) {
-    throw new Error("Failed to generate summary. Please try again.");
+    if (!summary) {
+      throw new Error("Failed to generate summary. Please try again.");
+    }
+
+    if (summary.length > MAX_SUMMARY_CHARS) {
+      const truncated = summary.slice(0, MAX_SUMMARY_CHARS);
+      const lastSpace = truncated.lastIndexOf(" ");
+      return lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated;
+    }
+
+    return summary;
+  } catch (error) {
+    console.error("[summary] LLM generation failed:", error);
+
+    if (error instanceof Error && error.message.includes("GEMINI_API_KEY")) {
+      throw error;
+    }
+
+    throw new Error(
+      "Unable to generate summary at this time. Please try again later."
+    );
   }
-
-  if (summary.length > MAX_SUMMARY_CHARS) {
-    const truncated = summary.slice(0, MAX_SUMMARY_CHARS);
-    const lastSpace = truncated.lastIndexOf(" ");
-    return lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated;
-  }
-
-  return summary;
 };
