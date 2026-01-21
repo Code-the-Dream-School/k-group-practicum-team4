@@ -484,7 +484,7 @@ function LibraryPage() {
       </button>
     </div>
 
-    <div className="max-h-72 overflow-y-auto pr-2">
+    <div className="max-h-96 overflow-y-auto pr-2">
       <p className="whitespace-pre-wrap">{aiResponse}</p>
     </div>
   </div>
