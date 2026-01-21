@@ -255,7 +255,7 @@ function LibraryPage() {
   if (!aiResponse.trim()) return;
 
   setEditingId(null);       
-  setNewTitle("");          
+  setNewTitle(aiPrompt.trim());        
   setNewTags([]);           
   setNewTagInput("");
   setNewText(aiResponse);   
