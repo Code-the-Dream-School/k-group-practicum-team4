@@ -94,9 +94,11 @@ function ResourcePage() {
           ) : isLoading ? (
             <div className="text-sm text-gray-500">Loading…</div>
           ) : activeTab === "resource" && resource ? (
-            <article className="max-w-3xl rounded-2xl border border-white/60 bg-white/90 p-6 text-base leading-7 text-slate-700 shadow-[var(--shadow-card)]">
-              <div className="max-h-96 overflow-y-auto pr-2">
-                <div className="whitespace-pre-wrap">{resource.textContent}</div>
+            <article className="rounded-3xl bg-white/70 p-8 shadow-[var(--shadow-card)] h-[calc(100vh-24rem)]">
+              <div className="h-full overflow-y-auto pr-2">
+                <div className="prose prose-stone max-w-none whitespace-pre-wrap">
+                  {resource.textContent}
+                </div>
               </div>
             </article>
           ) : activeTab === "summary" && resource ? (
