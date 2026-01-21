@@ -9,6 +9,7 @@ import {
   parseTags,
   normalizeText,
 } from "../utils/validation";
+import { generateSummaryFromText } from "../services/summaryGenerator";
 
 const requireUserObjectId = (
   req: Request,
@@ -260,6 +261,80 @@ export const deleteResource = async (
     }
 
     return res.status(204).send();
+  } catch (error: any) {
+    if (handleCastError(error, res)) return;
+    next(error);
+  }
+};
+
+export const generateSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const ownerId = requireUserObjectId(req, res);
+    if (!ownerId) return;
+
+    const { id } = req.params;
+
+    const resource = await Resource.findOne({ _id: id, ownerId });
+
+    if (!resource) {
+      return res.status(404).json({
+        success: false,
+        error: "Resource not found",
+      });
+    }
+
+    try {
+      const summaryContent = await generateSummaryFromText(
+        resource.textContent
+      );
+
+      resource.summary = {
+        content: summaryContent,
+        createdAt: new Date(),
+      };
+
+      await resource.save();
+
+      return res.status(200).json({
+        success: true,
+        summary: resource.summary,
+      });
+    } catch (summaryError: any) {
+      if (summaryError instanceof Error) {
+        if (
+          summaryError.message.includes("too short") ||
+          summaryError.message.includes("too long") ||
+          summaryError.message.includes("required")
+        ) {
+          return res.status(400).json({
+            success: false,
+            error: summaryError.message,
+          });
+        }
+
+        if (summaryError.message.includes("GEMINI_API_KEY")) {
+          console.error("[resource] Gemini API key missing");
+          return res.status(500).json({
+            success: false,
+            error: "Summary service is not configured. Please contact support.",
+          });
+        }
+
+        return res.status(503).json({
+          success: false,
+          error: summaryError.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: "An unexpected error occurred while generating summary",
+      });
+    }
   } catch (error: any) {
     if (handleCastError(error, res)) return;
     next(error);
