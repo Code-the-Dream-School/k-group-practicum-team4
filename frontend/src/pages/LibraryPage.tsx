@@ -251,6 +251,19 @@ function LibraryPage() {
     }
   };
 
+  const handleSaveAiAsResource = () => {
+  if (!aiResponse.trim()) return;
+
+  setEditingId(null);       
+  setNewTitle("");          
+  setNewTags([]);           
+  setNewTagInput("");
+  setNewText(aiResponse);   
+  setSaveError(null);
+  setIsModalOpen(true);     
+};
+
+
   const handleLogout = () => {
     clearAuthToken();
     clearAuthUser();
@@ -451,20 +464,32 @@ function LibraryPage() {
                     {aiError}
                   </p>
                 ) : null}
-                {aiResponse ? (
-                  <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={handleCopyResponse}
-                      className="inline-flex items-center justify-center rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-slate-50"
-                    >
-                      {isCopied ? "Copied!" : "Copy"}
-                    </button>
-                    <div className="max-h-72 overflow-y-auto pr-2">
-                      <p className="whitespace-pre-wrap">{aiResponse}</p>
-                    </div>
-                  </div>
-                ) : null}
+             {aiResponse ? (
+  <div className="space-y-3">
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={handleCopyResponse}
+        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-slate-50"
+      >
+        {isCopied ? "Copied!" : "Copy"}
+      </button>
+
+      <button
+        type="button"
+        onClick={handleSaveAiAsResource}
+        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-slate-50"
+      >
+        Save as resource
+      </button>
+    </div>
+
+    <div className="max-h-72 overflow-y-auto pr-2">
+      <p className="whitespace-pre-wrap">{aiResponse}</p>
+    </div>
+  </div>
+) : null}
+
               </div>
 
               <div className="mt-10">
