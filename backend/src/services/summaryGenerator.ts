@@ -1,7 +1,8 @@
 import { generateText } from "../ai/llm";
+import { LIMITS } from "../config/constants";
 
 const MAX_SUMMARY_CHARS = 5000;
-const MAX_INPUT_CHARS = 50000;
+const MAX_INPUT_CHARS = LIMITS.TEXT_CONTENT_MAX_LENGTH;
 const MIN_INPUT_CHARS = 100;
 
 const SUMMARY_PROMPT = `
