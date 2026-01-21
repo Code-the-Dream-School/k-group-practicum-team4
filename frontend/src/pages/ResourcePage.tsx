@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Tabs from "../components/Tabs";
 import ResourceFlashcardsTab from "../components/ResourceFlashcardsTab";
+import ResourceSummaryTab from "../components/ResourceSummaryTab";
 import { getResourceById, type ResourceDto } from "../api/apiClient";
 
 type TabKey = "resource" | "summary" | "flashcards" | "quizzes";
@@ -15,6 +16,12 @@ function ResourcePage() {
   const [resource, setResource] = useState<ResourceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  async function reloadResource() {
+    if (!resourceId) return;
+    const data = await getResourceById(resourceId);
+    setResource(data);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -92,8 +99,16 @@ function ResourcePage() {
                 <div className="whitespace-pre-wrap">{resource.textContent}</div>
               </div>
             </article>
+          ) : activeTab === "summary" && resource ? (
+            <ResourceSummaryTab
+              resource={resource}
+              onReloadResource={reloadResource}
+            />
           ) : activeTab === "flashcards" && resource ? (
-            <ResourceFlashcardsTab resourceId={resource._id} resourceTitle={resource.title} />
+            <ResourceFlashcardsTab
+              resourceId={resource._id}
+              resourceTitle={resource.title}
+            />
           ) : (
             <div className="text-sm text-gray-500">Not implemented yet.</div>
           )}
