@@ -1,3 +1,4 @@
+// src/api/apiClient.ts
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 
 if (!BASE_URL) {
@@ -156,6 +157,11 @@ export async function loginUser(body: LoginUserBody): Promise<AuthResponse> {
 }
 
 // ---------- Resources ----------
+export type ResourceSummaryDto = {
+  content: string;
+  createdAt: string;
+};
+
 export type ResourceDto = {
   _id: string;
   title: string;
@@ -164,6 +170,7 @@ export type ResourceDto = {
   type: "plain_text";
   createdAt: string;
   updatedAt: string;
+  summary?: ResourceSummaryDto;
 };
 
 type GetUserResourcesResponse = {
@@ -209,6 +216,23 @@ export async function getResourceById(resourceId: string): Promise<ResourceDto> 
   return res.resource;
 }
 
+type GenerateResourceSummaryResponse = {
+  success: true;
+  summary: {
+    content: string;
+    createdAt: string;
+  };
+};
+
+export async function generateResourceSummary(
+  resourceId: string
+): Promise<GenerateResourceSummaryResponse> {
+  return request<GenerateResourceSummaryResponse>(
+    `/api/resources/${resourceId}/summary`,
+    { method: "POST" }
+  );
+}
+
 export async function createResource(body: CreateResourceBody): Promise<ResourceDto> {
   const res = await request<CreateResourceResponse>(`/api/resources`, {
     method: "POST",
@@ -232,6 +256,7 @@ export async function deleteResource(resourceId: string): Promise<void> {
   await request<unknown>(`/api/resources/${resourceId}`, { method: "DELETE" });
 }
 
+// ---------- AI ----------
 type AskAiResponse = {
   response: string;
 };

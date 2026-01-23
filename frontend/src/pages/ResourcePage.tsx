@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Tabs from "../components/Tabs";
 import ResourceFlashcardsTab from "../components/ResourceFlashcardsTab";
+import ResourceSummaryTab from "../components/ResourceSummaryTab";
 import { getResourceById, type ResourceDto } from "../api/apiClient";
 
 type TabKey = "resource" | "summary" | "flashcards" | "quizzes";
@@ -15,6 +16,12 @@ function ResourcePage() {
   const [resource, setResource] = useState<ResourceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  async function reloadResource() {
+    if (!resourceId) return;
+    const data = await getResourceById(resourceId);
+    setResource(data);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -87,13 +94,23 @@ function ResourcePage() {
           ) : isLoading ? (
             <div className="text-sm text-gray-500">Loading…</div>
           ) : activeTab === "resource" && resource ? (
-            <article className="max-w-3xl rounded-2xl border border-white/60 bg-white/90 p-6 text-base leading-7 text-slate-700 shadow-[var(--shadow-card)]">
-              <div className="max-h-96 overflow-y-auto pr-2">
-                <div className="whitespace-pre-wrap">{resource.textContent}</div>
+            <article className="rounded-3xl bg-white/70 p-8 shadow-[var(--shadow-card)] h-[calc(100vh-24rem)]">
+              <div className="h-full overflow-y-auto pr-2">
+                <div className="prose prose-stone max-w-none whitespace-pre-wrap">
+                  {resource.textContent}
+                </div>
               </div>
             </article>
+          ) : activeTab === "summary" && resource ? (
+            <ResourceSummaryTab
+              resource={resource}
+              onReloadResource={reloadResource}
+            />
           ) : activeTab === "flashcards" && resource ? (
-            <ResourceFlashcardsTab resourceId={resource._id} resourceTitle={resource.title} />
+            <ResourceFlashcardsTab
+              resourceId={resource._id}
+              resourceTitle={resource.title}
+            />
           ) : (
             <div className="text-sm text-gray-500">Not implemented yet.</div>
           )}
