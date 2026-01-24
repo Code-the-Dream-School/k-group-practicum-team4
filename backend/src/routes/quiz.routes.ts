@@ -18,7 +18,8 @@ const quizGenerationLimiter = rateLimit({
   skipSuccessfulRequests: false,
   message: {
     success: false,
-    error: "You've reached the quiz generation limit. Please try again in 15 minutes.",
+    error:
+      "You've reached the quiz generation limit. Please try again in 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
