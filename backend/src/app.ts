@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import authRouter from "./routes/auth";
 import resourceRoutes from "./routes/resourceRoutes";
 import flashcardsRoutes from "./routes/flashcards.routes";
+import quizRoutes from "./routes/quiz.routes";
 import aiRoutes from "./routes/ai.routes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
 import { auth as authMiddleware } from "./middleware/auth";
@@ -42,6 +43,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/resources", authMiddleware, resourceRoutes);
 app.use("/api", authMiddleware, flashcardsRoutes);
+app.use("/api", authMiddleware, quizRoutes);
 app.use("/api", authMiddleware, aiRoutes);
 
 app.use("*", notFoundHandler);
