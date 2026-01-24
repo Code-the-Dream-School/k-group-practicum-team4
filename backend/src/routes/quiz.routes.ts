@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   generateQuizSet,
   listAllQuizSets,
@@ -11,7 +12,19 @@ import {
 
 const router = express.Router();
 
-router.post("/quiz-sets/generate", generateQuizSet);
+const quizGenerationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  skipSuccessfulRequests: false,
+  message: {
+    success: false,
+    error: "You've reached the quiz generation limit. Please try again in 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post("/quiz-sets/generate", quizGenerationLimiter, generateQuizSet);
 router.get("/quiz-sets", listAllQuizSets);
 router.get("/quiz-sets/:quizId/questions", getQuizQuestions);
 router.post("/quiz-sets/:quizId/submit", submitQuizAttempt);

@@ -1,16 +1,11 @@
 import { generateText } from "../ai/llm";
 import { LIMITS } from "../config/constants";
 
-const MAX_QUESTION_COUNT = 50;
-const MIN_QUESTION_COUNT = 3;
-const MIN_CHARS_PER_QUESTION = 50;
-const MAX_TEXT_LENGTH = LIMITS.TEXT_CONTENT_MAX_LENGTH;
-
 export const QUIZ_LIMITS = {
-  MAX_QUESTION_COUNT,
-  MIN_QUESTION_COUNT,
-  MIN_CHARS_PER_QUESTION,
-  MAX_TEXT_LENGTH,
+  MAX_QUESTION_COUNT: LIMITS.MAX_QUESTION_COUNT,
+  MIN_QUESTION_COUNT: LIMITS.MIN_QUESTION_COUNT,
+  MIN_CHARS_PER_QUESTION: LIMITS.MIN_CHARS_PER_QUESTION,
+  MAX_TEXT_LENGTH: LIMITS.TEXT_CONTENT_MAX_LENGTH,
 } as const;
 
 interface IGeneratedQuestion {
@@ -126,24 +121,24 @@ export const generateQuizFromText = async (
   }
 
   if (
-    questionCount < MIN_QUESTION_COUNT ||
-    questionCount > MAX_QUESTION_COUNT
+    questionCount < LIMITS.MIN_QUESTION_COUNT ||
+    questionCount > LIMITS.MAX_QUESTION_COUNT
   ) {
     throw new Error(
-      `Question count must be between ${MIN_QUESTION_COUNT} and ${MAX_QUESTION_COUNT}.`
+      `Question count must be between ${LIMITS.MIN_QUESTION_COUNT} and ${LIMITS.MAX_QUESTION_COUNT}.`
     );
   }
 
-  const minRequired = questionCount * MIN_CHARS_PER_QUESTION;
+  const minRequired = questionCount * LIMITS.MIN_CHARS_PER_QUESTION;
   if (cleanedText.length < minRequired) {
     throw new Error(
       `Text too short for ${questionCount} questions. Need at least ${minRequired} characters, got ${cleanedText.length}.`
     );
   }
 
-  if (cleanedText.length > MAX_TEXT_LENGTH) {
+  if (cleanedText.length > LIMITS.TEXT_CONTENT_MAX_LENGTH) {
     throw new Error(
-      `Text is too long (maximum ${MAX_TEXT_LENGTH} characters).`
+      `Text is too long (maximum ${LIMITS.TEXT_CONTENT_MAX_LENGTH} characters).`
     );
   }
 
