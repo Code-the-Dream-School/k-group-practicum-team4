@@ -16,7 +16,6 @@ const QuizQuestionSchema = new Schema<IQuizQuestion>(
       type: Schema.Types.ObjectId,
       ref: "Quiz",
       required: [true, "Quiz ID is required"],
-      index: true,
     },
     ownerId: {
       type: Schema.Types.ObjectId,

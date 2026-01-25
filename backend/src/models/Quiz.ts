@@ -16,13 +16,11 @@ const QuizSchema = new Schema<IQuiz>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Owner ID is required"],
-      index: true,
     },
     resourceId: {
       type: Schema.Types.ObjectId,
       ref: "Resource",
       required: [true, "Resource ID is required"],
-      index: true,
     },
     sequenceNumber: {
       type: Number,
@@ -47,6 +45,7 @@ const QuizSchema = new Schema<IQuiz>(
   }
 );
 
+// Compound indexes provide efficient queries
 QuizSchema.index({ ownerId: 1, resourceId: 1 });
 QuizSchema.index({ ownerId: 1, createdAt: -1 });
 

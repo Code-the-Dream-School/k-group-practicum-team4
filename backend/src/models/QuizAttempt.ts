@@ -53,13 +53,11 @@ const QuizAttemptSchema = new Schema<IQuizAttempt>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Owner ID is required"],
-      index: true,
     },
     quizId: {
       type: Schema.Types.ObjectId,
       ref: "Quiz",
       required: [true, "Quiz ID is required"],
-      index: true,
     },
     scorePercent: {
       type: Number,
@@ -111,6 +109,7 @@ QuizAttemptSchema.pre("validate", function (next) {
   next();
 });
 
+// Compound indexes provide efficient queries
 QuizAttemptSchema.index({ ownerId: 1, quizId: 1, finishedAt: -1 });
 QuizAttemptSchema.index({ quizId: 1 });
 

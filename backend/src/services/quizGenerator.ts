@@ -158,6 +158,7 @@ Generate ${questionCount} questions in JSON format:
 
     let cleanedResponse = response.trim();
 
+    // Remove markdown code blocks BEFORE parsing
     if (cleanedResponse.startsWith("```json")) {
       cleanedResponse = cleanedResponse.replace(/^```json\s*/, "");
     }
@@ -167,6 +168,8 @@ Generate ${questionCount} questions in JSON format:
     if (cleanedResponse.endsWith("```")) {
       cleanedResponse = cleanedResponse.replace(/\s*```$/, "");
     }
+
+    cleanedResponse = cleanedResponse.trim();
 
     let parsed: IGeneratedQuiz;
     try {
