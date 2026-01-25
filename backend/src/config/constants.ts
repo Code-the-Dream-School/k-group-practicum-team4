@@ -3,6 +3,11 @@ export const LIMITS = {
   TEXT_CONTENT_MAX_LENGTH: 100000, // 100KB for plain text content
   MAX_TAGS: 10,
   TAG_MAX_LENGTH: 30,
+
+  // Quiz limits
+  MAX_QUESTION_COUNT: 50,
+  MIN_QUESTION_COUNT: 3,
+  MIN_CHARS_PER_QUESTION: 50,
 } as const;
 
 export const validateEnv = () => {

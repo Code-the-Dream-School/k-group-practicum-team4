@@ -11,8 +11,9 @@ You are a study assistant that creates concise summaries of educational content.
 Task: Create a clear, structured summary of the provided text.
 
 Formatting rules:
-- Plain text only (no Markdown, no code fences, no headings).
-- Use short paragraphs separated by line breaks.
+- Plain text only (no Markdown, no code fences, no headings, no line breaks).
+- Write as continuous text with natural paragraph flow.
+- Use periods to separate ideas instead of line breaks.
 - Keep the summary under ${MAX_SUMMARY_CHARS} characters.
 - Focus on key concepts, main ideas, and important details.
 
@@ -20,6 +21,7 @@ Quality rules:
 - Be accurate and comprehensive.
 - Maintain the original meaning and context.
 - Use clear, simple language suitable for studying.
+- Return ONLY the summary text without any special formatting.
 `.trim();
 
 export const generateSummaryFromText = async (
@@ -51,16 +53,25 @@ Text to summarize:
 ${cleanedText}
 """
 
-Summary:
+Summary (plain text only, no line breaks):
 `.trim();
 
   try {
     const raw = await generateText({ prompt });
-    const summary = raw?.trim() || "";
+    let summary = raw?.trim() || "";
 
     if (!summary) {
       throw new Error("Failed to generate summary. Please try again.");
     }
+
+    // Clean up any newlines and excessive whitespace
+    summary = summary
+      .replace(/\\n\\n/g, " ")
+      .replace(/\\n/g, " ")
+      .replace(/\n\n/g, " ")
+      .replace(/\n/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
     if (summary.length > MAX_SUMMARY_CHARS) {
       const truncated = summary.slice(0, MAX_SUMMARY_CHARS);
