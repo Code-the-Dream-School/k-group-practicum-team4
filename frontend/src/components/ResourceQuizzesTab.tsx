@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { useQuizzes } from "./quizzes/useQuizzes";
@@ -7,9 +7,15 @@ import QuizzesEmptyState from "./quizzes/QuizzesEmptyState";
 import GenerateQuizModal from "./quizzes/GenerateQuizModal";
 import QuizPlayer from "./quizzes/QuizPlayer";
 import QuizResult from "./quizzes/QuizResult";
+import ConfirmDeleteQuizModal from "./quizzes/ConfirmDeleteQuizModal";
 import Button from "./Button";
 
 import type { QuizSubmitResponseDto } from "../api/quizzes";
+
+type ConfirmState = {
+  isOpen: boolean;
+  quizId: string | null;
+};
 
 export default function ResourceQuizzesTab() {
   const { id: resourceId } = useParams<{ id: string }>();
@@ -18,7 +24,9 @@ export default function ResourceQuizzesTab() {
     quizzes,
     isLoading,
     isGenerating,
+    deletingId,
     generate,
+    remove,
   } = useQuizzes(resourceId!);
 
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -26,8 +34,33 @@ export default function ResourceQuizzesTab() {
   const [quizResult, setQuizResult] =
     useState<QuizSubmitResponseDto | null>(null);
 
-  // RESULT 
-  if (quizResult && selectedQuizId) {
+  const [confirm, setConfirm] = useState<ConfirmState>({
+    isOpen: false,
+    quizId: null,
+  });
+
+  const isModalBusy = useMemo(() => {
+    if (!confirm.isOpen || !confirm.quizId) return false;
+    return deletingId === confirm.quizId;
+  }, [confirm.isOpen, confirm.quizId, deletingId]);
+
+  const openConfirm = (quizId: string) => {
+    setConfirm({ isOpen: true, quizId });
+  };
+
+  const closeConfirm = () => {
+    if (isModalBusy) return;
+    setConfirm({ isOpen: false, quizId: null });
+  };
+
+  const confirmDelete = async () => {
+    if (!confirm.quizId) return;
+    await remove(confirm.quizId);
+    setConfirm({ isOpen: false, quizId: null });
+  };
+
+  /* ───────── RESULT MODE ───────── */
+  if (quizResult) {
     return (
       <QuizResult
         result={quizResult}
@@ -39,15 +72,13 @@ export default function ResourceQuizzesTab() {
     );
   }
 
-  // PLAYER
+  /* ───────── PLAYER MODE ───────── */
   if (selectedQuizId) {
     return (
       <QuizPlayer
         quizId={selectedQuizId}
         onBack={() => setSelectedQuizId(null)}
-        onFinish={(result) => {
-          setQuizResult(result);
-        }}
+        onFinish={(result) => setQuizResult(result)}
       />
     );
   }
@@ -56,7 +87,7 @@ export default function ResourceQuizzesTab() {
     return <div className="py-20 text-sm text-gray-500">Loading quizzes…</div>;
   }
 
-  // EMPTY STATE
+  /* ───────── EMPTY STATE ───────── */
   if (quizzes.length === 0) {
     return (
       <>
@@ -78,9 +109,16 @@ export default function ResourceQuizzesTab() {
     );
   }
 
-  // LIST STATE 
+  /* ───────── LIST STATE ───────── */
   return (
     <>
+      <ConfirmDeleteQuizModal
+        isOpen={confirm.isOpen}
+        isBusy={isModalBusy}
+        onConfirm={confirmDelete}
+        onClose={closeConfirm}
+      />
+
       <GenerateQuizModal
         isOpen={isGenerateOpen}
         isGenerating={isGenerating}
@@ -111,9 +149,9 @@ export default function ResourceQuizzesTab() {
               title={quiz.title}
               createdAt={quiz.createdAt}
               countLabel={`${quiz.questionCount} questions`}
-              isDeleting={false}
+              isDeleting={deletingId === quiz.id}
               onOpen={() => setSelectedQuizId(quiz.id)}
-              onDelete={() => {}}
+              onDelete={() => openConfirm(quiz.id)}
             />
           ))}
         </div>
