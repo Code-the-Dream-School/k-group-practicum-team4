@@ -24,10 +24,9 @@ export default function QuizPlayer({
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
   const [startedAt] = useState(() => new Date().toISOString());
 
-  // load quiz 
+  // load quiz
   useEffect(() => {
     let cancelled = false;
 
@@ -66,7 +65,7 @@ export default function QuizPlayer({
       ([questionId, selectedIndex]) => ({
         questionId,
         selectedIndex,
-      })
+      }),
     );
 
     const result = await submitQuiz(quiz.id, {
@@ -105,39 +104,45 @@ export default function QuizPlayer({
           </div>
         </div>
 
-        <div className="w-full max-w-xl rounded-2xl bg-white p-8 shadow-[var(--shadow-card)]">
-          <h2 className="mb-6 text-lg font-semibold">
+        <div
+          className="
+    w-full max-w-xl
+    h-[480px]
+    rounded-2xl
+    bg-white
+    p-8
+    shadow-[var(--shadow-card)]
+    flex flex-col
+  "
+        >
+          {/* Question */}
+          <h2 className="mb-4 text-lg font-semibold shrink-0">
             {question.prompt}
           </h2>
 
-          <div className="space-y-3">
+          {/* Answers (scrollable) */}
+          <div className="flex-1 overflow-y-auto pr-1 space-y-3">
             {question.options.map((opt, i) => (
               <label
                 key={i}
-                className="flex items-center gap-3 rounded-lg px-4 py-3 cursor-pointer hover:bg-gray-50"
+                onClick={() => setAnswers((s) => ({ ...s, [question.id]: i }))}
+                className="flex cursor-pointer items-start gap-4 rounded-xl px-4 py-3 transition hover:bg-gray-50"
               >
-                <span
+                {/* Bullet */}
+                <div
                   className={[
-                    "h-4 w-4 rounded-full border flex items-center justify-center",
+                    "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
                     answers[question.id] === i
                       ? "border-[var(--color-primary)]"
                       : "border-gray-300",
                   ].join(" ")}
                 >
                   {answers[question.id] === i && (
-                    <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
                   )}
-                </span>
+                </div>
 
-                <input
-                  type="radio"
-                  className="hidden"
-                  checked={answers[question.id] === i}
-                  onChange={() =>
-                    setAnswers((s) => ({ ...s, [question.id]: i }))
-                  }
-                />
-                {opt}
+                <span className="text-sm leading-snug">{opt}</span>
               </label>
             ))}
           </div>
@@ -147,7 +152,7 @@ export default function QuizPlayer({
           <button
             onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
             disabled={safeIndex === 0}
-            className="h-10 w-10 rounded-full bg-white border shadow disabled:opacity-50"
+            className="h-10 w-10 rounded-full bg-white  shadow disabled:opacity-50"
           >
             ‹
           </button>
@@ -157,9 +162,7 @@ export default function QuizPlayer({
               {isSubmitting ? "Submitting…" : "Submit"}
             </Button>
           ) : (
-            <Button onClick={() => setCurrentIndex((i) => i + 1)}>
-              Next
-            </Button>
+            <Button onClick={() => setCurrentIndex((i) => i + 1)}>Next</Button>
           )}
         </div>
       </div>
