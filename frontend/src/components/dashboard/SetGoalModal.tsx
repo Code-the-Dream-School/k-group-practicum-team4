@@ -30,7 +30,7 @@ export default function SetGoalModal({ initialValue, onUpdateGoal, onClose }: Pr
             />
 
             {/* Modal */}
-            <div className="flex flex-col justify-center relative z-10 w-169 max-w-[90%] h-88.75 max-h-[90%] rounded-2xl bg-white p-10  gap-3 shadow-lg">
+            <div className="flex flex-col justify-center relative z-10 w-[676px] max-w-[90%] h-[355px] max-h-[90%] rounded-2xl bg-white p-10  gap-3 shadow-lg">
                 {/* Close button */}
                 <button
                     onClick={onClose}
@@ -72,7 +72,7 @@ export default function SetGoalModal({ initialValue, onUpdateGoal, onClose }: Pr
                         onClick={handleSave}
                         disabled={!isValid}
                         className="
-                            h-11.5 w-30
+                            h-[46px] w-[120px]
                             rounded-[20px]
                             bg-[var(--color-primary)]
                             text-base font-semibold text-white
@@ -85,7 +85,7 @@ export default function SetGoalModal({ initialValue, onUpdateGoal, onClose }: Pr
                     <button
                         onClick={onClose}
                         className="
-                            h-11.5 w-24 rounded-[20px]
+                            h-[46px] w-[96px] rounded-[20px]
                             px-4 text-base font-semibold
                             text-[var(--color-primary)]
                             border border-[var(--color-primary)]

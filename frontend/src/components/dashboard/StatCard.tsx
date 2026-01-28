@@ -31,7 +31,7 @@ export default function StatCard({ type, value }: StatCardProps) {
 
     return (
         <div
-            className={`w-104.75 h-33 rounded-xl shadow ${colorMap[type]} flex items-center justify-between px-6`}
+            className={`w-[419px] h-[132px] rounded-xl shadow ${colorMap[type]} flex items-center justify-between px-6`}
         >
             {/*Left-side - Value */}
             <div className="flex flex-row items-baseline gap-2">
@@ -43,7 +43,7 @@ export default function StatCard({ type, value }: StatCardProps) {
             <img
                 src={iconMap[type]}
                 alt={titleMap[type]}
-                className="w-30.5 h-30 object-contain"
+                className="w-[122px] h-[120px] object-contain"
             />
         </div>
     );

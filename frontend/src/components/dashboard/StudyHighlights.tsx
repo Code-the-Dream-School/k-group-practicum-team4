@@ -58,7 +58,7 @@ export default function StudyHighlights({ weekly, today, setTodayStats }: Props)
 
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
             <div className="rounded-2xl bg-white p-8 shadow-[var(--shadow-card)]">
                 <div className="mb-6 flex items-center justify-between">
                     <h2 className="text-xl font-bold">Study Highlights</h2>
@@ -66,8 +66,8 @@ export default function StudyHighlights({ weekly, today, setTodayStats }: Props)
                         className="
                             text-xl font-semibold
                             pl-5
-                            text-(--color-surface)
-                            bg-black w-34 h-9.75
+                            text-[var(--color-surface)]
+                            bg-black w-[136px] h-[39px]
                             rounded-[19.5px]
                             cursor-pointer"
 
@@ -99,12 +99,11 @@ export default function StudyHighlights({ weekly, today, setTodayStats }: Props)
                     <div className="flex items-center gap-8">
 
                         {/* Ring */}
-                        <div className="relative h-27 w-27">
+                        <div className="relative w-[108px] h-[108px]">
                             {/* Gray base ring */}
                             <div
-                                className="absolute inset-0 rounded-full"
+                                className="absolute inset-0 rounded-full bg-[var(--color-surface)]"
                                 style={{
-                                    background: "#f3f4f6",
                                     WebkitMask:
                                         "radial-gradient(circle, transparent 62%, black 63%)",
                                     mask:
@@ -164,7 +163,7 @@ export default function StudyHighlights({ weekly, today, setTodayStats }: Props)
                         </div>
 
                         {/* Progress block  */}
-                        <div className="w-50">
+                        <div className="w-[200px]">
                             {/* Min labels */}
                             <div className="mb-1 pr-4 pl-4 flex justify-between text-[10px] text-gray-400">
                                 <span>{today.studiedMinutes} min</span>

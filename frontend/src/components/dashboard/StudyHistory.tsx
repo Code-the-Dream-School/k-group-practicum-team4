@@ -136,7 +136,7 @@ export default function StudyHistory({ data }: StudyHistoryProps) {
    */
 
     return (
-        <div className="rounded-2xl bg-white p-8 shadow-[var(--shadow-card)]">
+        <div className="rounded-2xl bg-white p-10 shadow-[var(--shadow-card)]">
             <h2 className="mb-6 text-xl font-bold">Study History</h2>
             <ul className="space-y-3">
                 {items.map((item: HistoryItem) => (
@@ -144,7 +144,7 @@ export default function StudyHistory({ data }: StudyHistoryProps) {
                         key={item.id}
                         className="
                             flex items-center justify-between
-                             w-full max-w-200 min-h-18.25
+                             w-full max-w-[800px] min-h-[73px]
                              rounded-xl
                              border border-[var(--color-border-muted)]
                              px-4
