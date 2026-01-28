@@ -23,10 +23,11 @@ export default function QuizPlayer({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const [startedAt] = useState(() => new Date().toISOString());
 
-  // load quiz
+  // ───────── Load quiz ─────────
   useEffect(() => {
     let cancelled = false;
 
@@ -55,9 +56,16 @@ export default function QuizPlayer({
 
   const question = questions[safeIndex];
 
-  // submit
+  const isAllAnswered = Object.keys(answers).length === total;
+  const isLastQuestion = safeIndex === total - 1;
+
+  // ───────── Submit ─────────
   async function handleSubmit() {
-    if (!quiz) return;
+    setSubmitAttempted(true);
+
+    if (!quiz || !isAllAnswered) {
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -91,6 +99,7 @@ export default function QuizPlayer({
       </button>
 
       <div className="flex flex-col items-center gap-6">
+        {/* Progress */}
         <div className="w-full max-w-xl">
           <div className="mb-2 text-center text-sm text-gray-500">
             Question {safeIndex + 1} of {total}
@@ -104,31 +113,21 @@ export default function QuizPlayer({
           </div>
         </div>
 
-        <div
-          className="
-    w-full max-w-xl
-    h-[480px]
-    rounded-2xl
-    bg-white
-    p-8
-    shadow-[var(--shadow-card)]
-    flex flex-col
-  "
-        >
-          {/* Question */}
+        {/* Card */}
+        <div className="w-full max-w-xl h-[480px] rounded-2xl bg-white p-8 shadow-[var(--shadow-card)] flex flex-col">
           <h2 className="mb-4 text-lg font-semibold shrink-0">
             {question.prompt}
           </h2>
 
-          {/* Answers (scrollable) */}
           <div className="flex-1 overflow-y-auto pr-1 space-y-3">
             {question.options.map((opt, i) => (
               <label
                 key={i}
-                onClick={() => setAnswers((s) => ({ ...s, [question.id]: i }))}
+                onClick={() =>
+                  setAnswers((s) => ({ ...s, [question.id]: i }))
+                }
                 className="flex cursor-pointer items-start gap-4 rounded-xl px-4 py-3 transition hover:bg-gray-50"
               >
-                {/* Bullet */}
                 <div
                   className={[
                     "mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2",
@@ -148,21 +147,36 @@ export default function QuizPlayer({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-            disabled={safeIndex === 0}
-            className="h-10 w-10 rounded-full bg-white  shadow disabled:opacity-50"
-          >
-            ‹
-          </button>
+        {/* Controls */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+              disabled={safeIndex === 0}
+              className="h-10 w-10 rounded-full bg-white shadow disabled:opacity-50"
+            >
+              ‹
+            </button>
 
-          {safeIndex === total - 1 ? (
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting…" : "Submit"}
-            </Button>
-          ) : (
-            <Button onClick={() => setCurrentIndex((i) => i + 1)}>Next</Button>
+            {isLastQuestion ? (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting…" : "Submit"}
+              </Button>
+            ) : (
+              <Button onClick={() => setCurrentIndex((i) => i + 1)}>
+                Next
+              </Button>
+            )}
+          </div>
+
+          {/* Error message — ONLY after submit attempt */}
+          {isLastQuestion && submitAttempted && !isAllAnswered && (
+            <div className="text-sm text-gray-500">
+              Please answer all questions before submitting the quiz.
+            </div>
           )}
         </div>
       </div>
