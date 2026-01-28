@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Tabs from "../components/Tabs";
 import ResourceFlashcardsTab from "../components/ResourceFlashcardsTab";
+import ResourceQuizzesTab from "../components/ResourceQuizzesTab";
 import ResourceSummaryTab from "../components/ResourceSummaryTab";
 import { getResourceById, type ResourceDto } from "../api/apiClient";
 
@@ -31,7 +32,9 @@ function ResourcePage() {
         setIsLoading(true);
         setError(null);
 
-        if (!resourceId) throw new Error("Missing resource id in URL.");
+        if (!resourceId) {
+          throw new Error("Missing resource id in URL.");
+        }
 
         const data = await getResourceById(resourceId);
         if (cancelled) return;
@@ -59,7 +62,7 @@ function ResourcePage() {
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
       <main className="px-4">
         <div className="mx-auto max-w-6xl py-10">
-          {/* Header like in mock (always shown) */}
+          {/* Header */}
           <div className="mb-10 flex items-baseline gap-6">
             <h1 className="text-5xl font-black tracking-tight">{pageTitle}</h1>
             <Link
@@ -71,7 +74,7 @@ function ResourcePage() {
             </Link>
           </div>
 
-          {/* Tabs (always shown) */}
+          {/* Tabs */}
           <div className="mb-14">
             <Tabs
               tabs={["resource", "summary", "flashcards", "quizzes"]}
@@ -111,6 +114,8 @@ function ResourcePage() {
               resourceId={resource._id}
               resourceTitle={resource.title}
             />
+          ) : activeTab === "quizzes" && resource ? (
+            <ResourceQuizzesTab />
           ) : (
             <div className="text-sm text-gray-500">Not implemented yet.</div>
           )}
