@@ -3,6 +3,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUp";
 import SignInPage from "./pages/SignIn";
+import DashboardPage from "./pages/DashboardPage.tsx";
 import ResourcePage from "./pages/ResourcePage";
 import LibraryPage from "./pages/LibraryPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
@@ -16,7 +17,6 @@ const RequireAuth = ({ children }: { children: ReactElement }) => {
     return children;
 };
 
-
 function App() {
     return (
         <Routes>
@@ -24,6 +24,7 @@ function App() {
             <Route path="/" element={<SignUpPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/signin" element={<SignInPage />} />
+            <Route path="/dashboard" element={<DashboardPage />}/>
             <Route path="/library" element={
                 <RequireAuth>
                     <LibraryPage />
@@ -34,6 +35,7 @@ function App() {
                     <FlashcardsPage />
                 </RequireAuth>
             } />
+
             <Route path="/resources/:id" element={
                 <RequireAuth>
                     <ResourcePage />
@@ -45,5 +47,3 @@ function App() {
 }
 
 export default App;
-
-
