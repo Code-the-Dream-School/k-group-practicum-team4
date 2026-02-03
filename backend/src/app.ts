@@ -10,6 +10,7 @@ import resourceRoutes from "./routes/resourceRoutes";
 import flashcardsRoutes from "./routes/flashcards.routes";
 import quizRoutes from "./routes/quiz.routes";
 import aiRoutes from "./routes/ai.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 import { notFoundHandler, globalErrorHandler } from "./middleware/errorHandler";
 import { auth as authMiddleware } from "./middleware/auth";
 
@@ -45,6 +46,7 @@ app.use("/api/resources", authMiddleware, resourceRoutes);
 app.use("/api", authMiddleware, flashcardsRoutes);
 app.use("/api", authMiddleware, quizRoutes);
 app.use("/api", authMiddleware, aiRoutes);
+app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 
 app.use("*", notFoundHandler);
 app.use(globalErrorHandler);
