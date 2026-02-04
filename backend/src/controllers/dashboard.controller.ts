@@ -29,7 +29,10 @@ export const getDashboardActivity = async (req: Request, res: Response) => {
 
     const limitParam = typeof req.query.limit === 'string' ? Number(req.query.limit) : undefined;
     const limit = Number.isFinite(limitParam) ? limitParam : undefined;
-    const activity = await buildActivityLog(userId, { limit });
+    const activity = await buildActivityLog(
+      userId,
+      typeof limit === 'number' ? { limit } : {}
+    );
 
     res.json(activity);
   } catch (error) {

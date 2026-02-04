@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Resource } from '../models/Resource.js';
 import { FlashcardSetModel } from '../models/FlashcardSet.js';
+import { FlashcardStudySessionModel } from '../models/FlashcardStudySession.js';
 import { Quiz } from '../models/Quiz.js';
 
 export const buildDashboard = async (userId: string) => {
@@ -92,39 +93,64 @@ const getTodayActivity = async (userId: string): Promise<TodayActivity> => {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
   );
 
-  const [quizzesCompleted, flashcardsReviewed, minutesAgg] = await Promise.all([
-    db.collection('quizattempts').countDocuments({
-      ownerId: uid,
-      finishedAt: { $gte: today, $lt: tomorrow },
-    }),
-    db.collection('flashcards').countDocuments({
-      ownerId: uid,
-      createdAt: { $gte: today, $lt: tomorrow },
-    }),
-    db.collection('quizattempts').aggregate([
-      {
-        $match: {
-          ownerId: uid,
-          finishedAt: { $gte: today, $lt: tomorrow },
-          startedAt: { $gte: today, $lt: tomorrow },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalMs: {
-            $sum: { $subtract: ['$finishedAt', '$startedAt'] },
+  const [quizzesCompleted, quizMinutesAgg, flashcardSessionAgg] =
+    await Promise.all([
+      db.collection('quizattempts').countDocuments({
+        ownerId: uid,
+        finishedAt: { $gte: today, $lt: tomorrow },
+      }),
+      db.collection('quizattempts').aggregate([
+        {
+          $match: {
+            ownerId: uid,
+            finishedAt: { $gte: today, $lt: tomorrow },
+            startedAt: { $gte: today, $lt: tomorrow },
           },
         },
-      },
-    ]).toArray(),
-  ]);
+        {
+          $group: {
+            _id: null,
+            totalMs: {
+              $sum: { $subtract: ['$finishedAt', '$startedAt'] },
+            },
+          },
+        },
+      ]).toArray(),
+      (await FlashcardStudySessionModel.aggregate([
+        {
+          $match: {
+            ownerId: uid,
+            finishedAt: { $gte: today, $lt: tomorrow },
+            startedAt: { $gte: today, $lt: tomorrow },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalMs: { $sum: { $subtract: ['$finishedAt', '$startedAt'] } },
+            cardsReviewed: { $sum: '$cardsReviewed' },
+          },
+        },
+      ])) as Array<{ totalMs?: number; cardsReviewed?: number }>,
+    ]);
 
-  const totalMs =
-    minutesAgg.length > 0 && typeof minutesAgg[0]?.totalMs === 'number'
-      ? minutesAgg[0].totalMs
+  const quizMs =
+    quizMinutesAgg.length > 0 && typeof quizMinutesAgg[0]?.totalMs === 'number'
+      ? quizMinutesAgg[0].totalMs
       : 0;
-  const studiedMinutes = Math.max(0, Math.round(totalMs / 60000));
+  const flashcardMs =
+    flashcardSessionAgg.length > 0 &&
+    typeof flashcardSessionAgg[0]?.totalMs === 'number'
+      ? flashcardSessionAgg[0].totalMs
+      : 0;
+  const totalMs = quizMs + flashcardMs;
+  const studiedMinutes =
+    totalMs > 0 ? Math.max(1, Math.ceil(totalMs / 60000)) : 0;
+  const flashcardsReviewed =
+    flashcardSessionAgg.length > 0 &&
+    typeof flashcardSessionAgg[0]?.cardsReviewed === 'number'
+      ? flashcardSessionAgg[0].cardsReviewed
+      : 0;
 
   return { studiedMinutes, flashcardsReviewed, quizzesCompleted };
 };
@@ -149,21 +175,25 @@ const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7),
   );
 
-  const [flashcardsCount, summariesCount, quizzesCount] = await Promise.all([
-    db.collection('flashcards').countDocuments({
-      ownerId: uid,
-      createdAt: { $gte: fromDate },
-    }),
+  const [flashcardAgg, summariesCount, quizzesCount] = await Promise.all([
+    (await FlashcardStudySessionModel.aggregate([
+      { $match: { ownerId: uid, finishedAt: { $gte: fromDate } } },
+      { $group: { _id: null, cardsReviewed: { $sum: '$cardsReviewed' } } },
+    ])) as Array<{ cardsReviewed?: number }>,
     db.collection('resources').countDocuments({
       ownerId: uid,
-      createdAt: { $gte: fromDate },
-      summary: { $exists: true, $ne: null },
+      "summary.createdAt": { $gte: fromDate },
     }),
-    db.collection('quizzes').countDocuments({
+    db.collection('quizattempts').countDocuments({
       ownerId: uid,
-      createdAt: { $gte: fromDate },
+      finishedAt: { $gte: fromDate },
     }),
   ]);
+
+  const flashcardsCount =
+    flashcardAgg.length > 0 && typeof flashcardAgg[0]?.cardsReviewed === 'number'
+      ? flashcardAgg[0].cardsReviewed
+      : 0;
 
   const total = flashcardsCount + summariesCount + quizzesCount;
 
