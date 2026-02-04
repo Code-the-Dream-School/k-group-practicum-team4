@@ -85,9 +85,9 @@ export default function DashboardPage() {
                 setWeeklyActivity(dashboard.weeklyActivity);
                 setTodayStats((prev) => ({
                     ...prev,
-                    studiedMinutes: dashboard.todayActivity.studiedMinutes,
-                    flashcardsReviewed: dashboard.todayActivity.flashcardsReviewed,
-                    quizzesCompleted: dashboard.todayActivity.quizzesCompleted,
+                    studiedMinutes: dashboard.todayActivity?.studiedMinutes ?? 0,
+                    flashcardsReviewed: dashboard.todayActivity?.flashcardsReviewed ?? 0,
+                    quizzesCompleted: dashboard.todayActivity?.quizzesCompleted ?? 0,
                 }));
                 setActivity(activityLog);
             } catch (err: unknown) {

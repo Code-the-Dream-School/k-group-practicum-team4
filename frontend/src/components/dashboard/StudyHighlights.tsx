@@ -93,7 +93,7 @@ export default function StudyHighlights({ weekly, today, setTodayStats }: Props)
                 {/* Weekly Activity */}
                 <div className="mb-8">
                     <div className="mb-4 text-base font-bold ">
-                        Activity (last 30 days)
+                        Weekly Activity (last 7 days)
                     </div>
 
                     <div className="flex items-center gap-8">
