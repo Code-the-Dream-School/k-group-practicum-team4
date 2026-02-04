@@ -96,6 +96,29 @@ export async function getFlashcardSetById(
   return request<FlashcardSetDetailDto>(`/api/flashcard-sets/${setId}`);
 }
 
+export type RecordFlashcardSessionBody = {
+  cardsReviewed: number;
+  startedAt: string;
+  finishedAt: string;
+};
+
+export type RecordFlashcardSessionResponse = {
+  sessionId: string;
+};
+
+export async function recordFlashcardStudySession(
+  setId: string,
+  body: RecordFlashcardSessionBody
+): Promise<RecordFlashcardSessionResponse> {
+  return request<RecordFlashcardSessionResponse>(
+    `/api/flashcard-sets/${setId}/sessions`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
+}
+
 /**
  * POST /api/flashcard-sets/generate
  */
