@@ -24,7 +24,7 @@ function SignInPage() {
 
             const {token} = await loginUser({email, password});
             setAuthFromToken(token);
-            navigate("/library");
+            navigate("/dashboard");
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Unable to sign in.";
             setError(message);

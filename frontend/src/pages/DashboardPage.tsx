@@ -2,7 +2,14 @@ import StatCard from "../components/dashboard/StatCard";
 import StudyHighlights from "../components/dashboard/StudyHighlights.tsx";
 import StudyHistory from "../components/dashboard/StudyHistory";
 import type { ActivityLogItem } from "../components/dashboard/StudyHistory";
-import {useState} from "react";
+import { useEffect, useMemo, useState } from "react";
+import AppHeader from "../components/AppHeader";
+import TopNav from "../components/TopNav";
+import {
+    getAuthUser,
+    getActivityLog,
+    getDashboardData,
+} from "../api/apiClient";
 
 
 type User = {
@@ -16,31 +23,11 @@ type DashboardStats = {
     quizzes: number;
 };
 
-
-// Mocks
-const mockUser: User = { firstName: "Alena",  lastName: "Petrov"};
-
-const mockStats: DashboardStats = {
-    documents: 32,
-    flashcards: 120,
-    quizzes: 8,
+type WeeklyActivity = {
+    flashcards: number;
+    summaries: number;
+    quizzes: number;
 };
-
-const mockActivity: ActivityLogItem[] = [
-    { id: "1", type: "resource_uploaded", resourceId: "res1", resourceTitle: "UX Principles", createdAt: "2026-01-16T07:00:00Z" },
-    { id: "2", type: "flashcards_created", resourceId: "res2", resourceTitle: "React Basics", createdAt: "2026-01-15T13:00:00Z" },
-    { id: "3", type: "quiz_created", resourceId: "res1", resourceTitle: "UX Principles", createdAt: "2026-01-14T23:00:00Z" },
-    { id: "4", type: "resource_uploaded", resourceId: "res1", resourceTitle: "UX Principles", createdAt: "2026-01-14T17:00:00Z" },
-    { id: "5", type: "summary_created", resourceId: "res2", resourceTitle: "React Basics", createdAt: "2026-01-13T17:00:00Z" },
-
-];
-
-const mockWeeklyActivity = {
-    flashcards: 50,
-    summaries: 25,
-    quizzes: 25,
-};
-
 
 type TodayStats = {
     studiedMinutes: number;
@@ -51,53 +38,93 @@ type TodayStats = {
 
 
 export default function DashboardPage() {
-    /**
-     * Auth
-     * TODO: replace mock user with real auth once backend is ready
-     */
-        // const { user } = useAuth();
-        // if (!user) return null;
-    const user = mockUser;
+    const authUser = getAuthUser();
+    const displayName = authUser?.displayName?.trim() || "";
+    const user = useMemo<User>(() => {
+        if (!displayName) {
+            return { firstName: "Student", lastName: "" };
+        }
+        const parts = displayName.split(" ").filter(Boolean);
+        const firstName = parts[0] || "Student";
+        const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
+        return { firstName, lastName };
+    }, [displayName]);
 
-    /**
-     * Dashboard stats
-     * TODO: replace mock data with API call
-     * Endpoint: GET /api/dashboard/stats
-     * Expected response:
-     * {
-     *   documents: number;
-     *   flashcards: number;
-     *   quizzes: number;
-     * }
-     */
-        // const { data: stats, isLoading, error } = useDashboardStats();
-
-    const stats: DashboardStats = mockStats;
-
-
-    // TEMP: will replace with:
-    // const { data: activity } = useActivityLog();
-    const activity: ActivityLogItem[] = mockActivity;
-
-
-    const [todayStats, setTodayStats] = useState<TodayStats>({
-        studiedMinutes: 25,
-        goalMinutes: 60,
-        flashcardsReviewed: 10,
-        quizzesCompleted: 2,
+    const [stats, setStats] = useState<DashboardStats>({
+        documents: 0,
+        flashcards: 0,
+        quizzes: 0,
     });
+    const [weeklyActivity, setWeeklyActivity] = useState<WeeklyActivity>({
+        flashcards: 0,
+        summaries: 0,
+        quizzes: 0,
+    });
+    const [todayStats, setTodayStats] = useState<TodayStats>({
+        studiedMinutes: 0,
+        goalMinutes: 60,
+        flashcardsReviewed: 0,
+        quizzesCompleted: 0,
+    });
+    const [activity, setActivity] = useState<ActivityLogItem[]>([]);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let isActive = true;
+        const loadDashboard = async (): Promise<void> => {
+            try {
+                const [dashboard, activityLog] = await Promise.all([
+                    getDashboardData(),
+                    getActivityLog(10),
+                ]);
+                if (!isActive) return;
+                setStats({
+                    documents: dashboard.stats.documentsCount,
+                    flashcards: dashboard.stats.flashcardsCount,
+                    quizzes: dashboard.stats.quizzesCount,
+                });
+                setWeeklyActivity(dashboard.weeklyActivity);
+                setTodayStats((prev) => ({
+                    ...prev,
+                    studiedMinutes: dashboard.todayActivity.studiedMinutes,
+                    flashcardsReviewed: dashboard.todayActivity.flashcardsReviewed,
+                    quizzesCompleted: dashboard.todayActivity.quizzesCompleted,
+                }));
+                setActivity(activityLog);
+            } catch (err: unknown) {
+                if (!isActive) return;
+                const message = err instanceof Error ? err.message : "Unable to load dashboard.";
+                setError(message);
+            }
+        };
+
+        loadDashboard();
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+            <AppHeader />
+            <TopNav />
             <main>
                 <div className="mx-auto max-w-7xl">
                     <div className="pb-10 pt-10 flex flex-wrap items-center justify-between gap-6">
                         <div>
                             <h1 className="text-4xl font-black">
-                                Hi, {user.firstName} {user.lastName?.charAt(0)}.
+                                Hi, {user.firstName} {user.lastName ? `${user.lastName.charAt(0)}.` : ""}.
                             </h1>
                         </div>
                     </div>
+                    {error && (
+                        <div
+                            className="mb-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+                            aria-live="assertive"
+                        >
+                            {error}
+                        </div>
+                    )}
 
                     {/* Stats */}
                     <div className="mb-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -109,7 +136,7 @@ export default function DashboardPage() {
                     {/* Bottom grid */}
                     <div className="grid gap-5 lg:grid-cols-3">
                         <StudyHighlights
-                            weekly={mockWeeklyActivity}
+                            weekly={weeklyActivity}
                             today={todayStats}
                             setTodayStats={setTodayStats}
                         />

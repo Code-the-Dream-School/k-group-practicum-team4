@@ -1,10 +1,15 @@
 import { getAuthToken } from "./apiClient";
 
-const BASE_URL = import.meta.env.VITE_API_URL as string;
+const BASE_URL = import.meta.env.VITE_API_URL as string | undefined;
 
-if (!BASE_URL) {
-  throw new Error("VITE_API_URL is not set");
-}
+const getBaseUrl = (): string => {
+  if (!BASE_URL) {
+    throw new Error(
+      "VITE_API_URL is not set. Create frontend/.env.local with VITE_API_URL=http://localhost:8080"
+    );
+  }
+  return BASE_URL;
+};
 
 /* Types */
 
@@ -14,6 +19,11 @@ export type QuizListItemDto = {
   questionCount: number;
   lastScore?: number | null;
   createdAt: string;
+};
+
+export type QuizListItemWithResourceDto = QuizListItemDto & {
+  resourceId: string;
+  resourceTitle: string;
 };
 
 export type QuizQuestionDto = {
@@ -64,7 +74,7 @@ export type QuizSubmitResponseDto = {
 async function authFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getAuthToken();
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -92,6 +102,11 @@ export async function getResourceQuizzes(
   return authFetch<QuizListItemDto[]>(
     `/api/resources/${resourceId}/quiz-sets`,
   );
+}
+
+// GET /api/quiz-sets
+export async function getAllQuizSets(): Promise<QuizListItemWithResourceDto[]> {
+  return authFetch<QuizListItemWithResourceDto[]>(`/api/quiz-sets`);
 }
 
 // POST /api/quiz-sets/generate

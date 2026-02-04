@@ -1,13 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  BookOpen,
-  HelpCircle,
-  Home,
-  IdCard,
-  Sparkles,
-  Star,
-} from "lucide-react";
+import { Star } from "lucide-react";
 import {
   getAllFlashcardSets,
   getFlashcardSetById,
@@ -15,13 +7,8 @@ import {
   type FlashcardSetSummaryDto,
 } from "../api/flashcards";
 import FlashcardPlayer from "../components/flashcards/FlashcardPlayer";
-
-const navItems = [
-  { label: "Dashboard", icon: Home, path: "/" },
-  { label: "Study Room", icon: BookOpen, path: "/library" },
-  { label: "Flashcards", icon: IdCard, path: "/flashcards", active: true },
-  { label: "Quizzes", icon: HelpCircle, path: "/quizzes" },
-];
+import AppHeader from "../components/AppHeader";
+import TopNav from "../components/TopNav";
 
 type CountsBySetId = Record<string, number>;
 
@@ -99,45 +86,8 @@ function FlashcardsPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
-      <header className="bg-[var(--color-primary)] text-white shadow-lg">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-sm bg-[var(--color-accent)] shadow-[0_10px_24px_rgba(0,0,0,0.2)]" />
-            <div className="leading-tight">
-              <div className="text-lg font-extrabold uppercase tracking-wide">
-                Logotype
-              </div>
-              <div className="text-[11px] text-white/80">Brand Descriptor</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs uppercase tracking-[0.2em]">
-            <Sparkles className="h-4 w-4" />
-            AI Study
-          </div>
-        </div>
-      </header>
-
-      <nav className="border-b border-white/40 bg-white/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-6 py-4 text-sm font-semibold text-slate-600">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.label}
-                to={item.path}
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 transition ${
-                  item.active
-                    ? "bg-[var(--color-primary-muted)] text-[var(--color-primary-strong)]"
-                    : "hover:text-[var(--color-primary-strong)]"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <AppHeader />
+      <TopNav />
 
       <main className="px-6 pb-14 pt-10">
         <div className="mx-auto max-w-6xl">
