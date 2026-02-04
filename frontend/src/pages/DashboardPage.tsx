@@ -46,8 +46,7 @@ export default function DashboardPage() {
         }
         const parts = displayName.split(" ").filter(Boolean);
         const firstName = parts[0] || "Student";
-        const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
-        return { firstName, lastName };
+        return { firstName, lastName: "" };
     }, [displayName]);
 
     const [stats, setStats] = useState<DashboardStats>({
@@ -113,7 +112,7 @@ export default function DashboardPage() {
                     <div className="pb-10 pt-10 flex flex-wrap items-center justify-between gap-6">
                         <div>
                             <h1 className="text-4xl font-black">
-                                Hi, {user.firstName} {user.lastName ? `${user.lastName.charAt(0)}.` : ""}.
+                                Hi, {user.firstName}
                             </h1>
                         </div>
                     </div>

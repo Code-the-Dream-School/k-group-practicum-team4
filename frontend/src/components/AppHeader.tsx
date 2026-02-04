@@ -23,7 +23,7 @@ export default function AppHeader({
   const displayLabel = (() => {
     const parts = displayName.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {
-      return `${parts[0]} ${parts[1][0]?.toUpperCase()}.`;
+      return `${parts[0]} ${parts[1][0]?.toUpperCase()}`;
     }
     return displayName;
   })();
