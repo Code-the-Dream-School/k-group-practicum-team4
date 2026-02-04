@@ -146,11 +146,11 @@ const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
 
   const now = new Date();
   const fromDate = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 30),
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7),
   );
 
-  const [flashcardSetsCount, summariesCount, quizzesCount] = await Promise.all([
-    db.collection('flashcard_sets').countDocuments({
+  const [flashcardsCount, summariesCount, quizzesCount] = await Promise.all([
+    db.collection('flashcards').countDocuments({
       ownerId: uid,
       createdAt: { $gte: fromDate },
     }),
@@ -165,7 +165,7 @@ const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
     }),
   ]);
 
-  const total = flashcardSetsCount + summariesCount + quizzesCount;
+  const total = flashcardsCount + summariesCount + quizzesCount;
 
   if (total === 0) {
     return {
@@ -176,7 +176,7 @@ const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
   }
 
   return {
-    flashcards: Math.round((flashcardSetsCount / total) * 100),
+    flashcards: Math.round((flashcardsCount / total) * 100),
     summaries: Math.round((summariesCount / total) * 100),
     quizzes: Math.round((quizzesCount / total) * 100),
   };
