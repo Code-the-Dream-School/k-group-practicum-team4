@@ -53,7 +53,7 @@ export default function QuizSetCard({
           {countLabel}
         </div>
 
-        <div className="mt-6 flex items-center justify-between text-xs text-gray-500">
+        <div className="mt-6 flex items-center justify-between gap-3 pr-12 text-xs text-gray-500">
           <span>{formatRelativeCreatedAt(createdAt)}</span>
           {typeof lastScore === "number" ? (
             <span className="font-semibold text-[var(--color-primary)]">
