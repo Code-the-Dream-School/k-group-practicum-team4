@@ -6,7 +6,7 @@ export type FlashcardStudySession = {
   cardsReviewed: number;
   startedAt: Date;
   finishedAt: Date;
-  createdAt?: Date;
+  createdAt: Date;
 };
 
 const FlashcardStudySessionSchema = new Schema<FlashcardStudySession>(
