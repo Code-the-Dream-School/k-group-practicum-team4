@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { getDashboardData } from '../controllers/dashboard.controller';
+import { getDashboardActivity, getDashboardData } from '../controllers/dashboard.controller';
 
 const router = Router();
 
 router.get('/', getDashboardData);
+router.get('/activity', getDashboardActivity);
 
 export default router;

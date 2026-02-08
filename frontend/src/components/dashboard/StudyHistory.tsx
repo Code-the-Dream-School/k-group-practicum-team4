@@ -1,4 +1,4 @@
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import documentStudyIcon from "../../assets/icons/DocumentStudyIcon.png"
 import flashcardStudyIcon from "../../assets/icons/FlashcardStudyIcon.png"
 import quizStudyIcon from "../../assets/icons/QuizStudyIcon.png"
@@ -104,7 +104,7 @@ interface StudyHistoryProps {
 }
 
 export default function StudyHistory({ data }: StudyHistoryProps) {
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
     const items: HistoryItem[] = data.map(mapActivityToHistory);
 
     const handleClick = (item: HistoryItem): void => {
@@ -112,7 +112,9 @@ export default function StudyHistory({ data }: StudyHistoryProps) {
             alert("No resourceId available!");
             return;
         }
-        alert(`Navigate to resource: ${item.resourceId}\nTab: ${tabMap[item.type]}`);
+        navigate(`/resources/${item.resourceId}`, {
+            state: { activeTab: tabMap[item.type] },
+        });
     };
 
     /* Backend integration (when API is ready)

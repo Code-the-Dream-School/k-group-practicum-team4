@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Button from "../Button";
 import type { FlashcardSetDetailDto } from "../../api/flashcards";
+import { recordFlashcardStudySession } from "../../api/flashcards";
 
 type Props = {
   set: FlashcardSetDetailDto;
@@ -10,6 +11,8 @@ type Props = {
 export default function FlashcardPlayer({ set, onBack }: Props) {
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const startedAtRef = useRef<string>(new Date().toISOString());
+  const reviewedSetRef = useRef<Set<number>>(new Set());
 
   const total = set.cards.length;
 
@@ -19,6 +22,37 @@ export default function FlashcardPlayer({ set, onBack }: Props) {
   }, [index, total]);
 
   const card = set.cards[safeIndex];
+
+  useEffect(() => {
+    reviewedSetRef.current.add(safeIndex);
+  }, [safeIndex]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (set.cards.length === 0) return;
+      try {
+        navigator.sendBeacon(
+          `${import.meta.env.VITE_API_URL}/api/flashcard-sets/${set.id}/sessions`,
+          new Blob(
+            [
+              JSON.stringify({
+                cardsReviewed: reviewedSetRef.current.size,
+                startedAt: startedAtRef.current,
+                finishedAt: new Date().toISOString(),
+              }),
+            ],
+            { type: "application/json" }
+          )
+        );
+      } catch {
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [set.id, set.cards.length]);
 
   function prev() {
     setIndex((v) => Math.max(0, v - 1));
@@ -49,7 +83,19 @@ export default function FlashcardPlayer({ set, onBack }: Props) {
     <div className="space-y-10">
       <button
         type="button"
-        onClick={onBack}
+        onClick={async () => {
+          if (set.cards.length > 0) {
+            try {
+              await recordFlashcardStudySession(set.id, {
+                cardsReviewed: reviewedSetRef.current.size,
+                startedAt: startedAtRef.current,
+                finishedAt: new Date().toISOString(),
+              });
+            } catch {
+            }
+          }
+          onBack();
+        }}
         className="text-sm text-gray-600 hover:underline"
       >
         ← Back to all flashcards sets

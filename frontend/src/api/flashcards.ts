@@ -1,16 +1,19 @@
 import { getAuthToken } from "./apiClient";
 
-const BASE_URL = import.meta.env.VITE_API_URL as string;
+const BASE_URL = import.meta.env.VITE_API_URL as string | undefined;
 
-if (!BASE_URL) {
-  throw new Error(
-    "VITE_API_URL is not set. Create frontend/.env.local with VITE_API_URL=http://localhost:8080"
-  );
-}
+const getBaseUrl = (): string => {
+  if (!BASE_URL) {
+    throw new Error(
+      "VITE_API_URL is not set. Create frontend/.env.local with VITE_API_URL=http://localhost:8080"
+    );
+  }
+  return BASE_URL;
+};
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getAuthToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -91,6 +94,29 @@ export async function getFlashcardSetById(
   setId: string
 ): Promise<FlashcardSetDetailDto> {
   return request<FlashcardSetDetailDto>(`/api/flashcard-sets/${setId}`);
+}
+
+export type RecordFlashcardSessionBody = {
+  cardsReviewed: number;
+  startedAt: string;
+  finishedAt: string;
+};
+
+export type RecordFlashcardSessionResponse = {
+  sessionId: string;
+};
+
+export async function recordFlashcardStudySession(
+  setId: string,
+  body: RecordFlashcardSessionBody
+): Promise<RecordFlashcardSessionResponse> {
+  return request<RecordFlashcardSessionResponse>(
+    `/api/flashcard-sets/${setId}/sessions`,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    }
+  );
 }
 
 /**

@@ -4,6 +4,8 @@ type Props = {
   title: string;
   createdAt: string;
   countLabel: string;
+  resourceTitle?: string;
+  lastScore?: number | null;
   isDeleting: boolean;
   onOpen: () => void;
   onDelete: () => void; 
@@ -24,6 +26,8 @@ export default function QuizSetCard({
   title,
   createdAt,
   countLabel,
+  resourceTitle,
+  lastScore,
   isDeleting,
   onOpen,
   onDelete,
@@ -35,7 +39,13 @@ export default function QuizSetCard({
         onClick={onOpen}
         className="w-full rounded-2xl p-6 text-left focus-visible:outline-none"
       >
-        <div className="text-sm font-bold text-[var(--color-primary)]">
+        {resourceTitle ? (
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            {resourceTitle}
+          </div>
+        ) : null}
+
+        <div className="mt-2 text-sm font-bold text-[var(--color-primary)]">
           {title}
         </div>
 
@@ -43,8 +53,13 @@ export default function QuizSetCard({
           {countLabel}
         </div>
 
-        <div className="mt-6 text-xs text-gray-500">
-          {formatRelativeCreatedAt(createdAt)}
+        <div className="mt-6 flex items-center justify-between gap-3 pr-12 text-xs text-gray-500">
+          <span>{formatRelativeCreatedAt(createdAt)}</span>
+          {typeof lastScore === "number" ? (
+            <span className="font-semibold text-[var(--color-primary)]">
+              {lastScore}% last score
+            </span>
+          ) : null}
         </div>
       </button>
 

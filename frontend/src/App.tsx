@@ -7,7 +7,7 @@ import DashboardPage from "./pages/DashboardPage.tsx";
 import ResourcePage from "./pages/ResourcePage";
 import LibraryPage from "./pages/LibraryPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
-import QuizPage from "./pages/QuizzesPage";
+import QuizzesPage from "./pages/QuizzesPage";
 import { getAuthToken } from "./api/apiClient";
 
 const RequireAuth = ({ children }: { children: ReactElement }) => {
@@ -45,15 +45,15 @@ function App() {
     </RequireAuth>
   } />
 
-  <Route path="/quiz/:id" element={
+  <Route path="/quizzes" element={
     <RequireAuth>
-      <QuizPage />
+      <QuizzesPage />
     </RequireAuth>
   } />
 
-  <Route path="/quizzes/:quizId" element={
+  <Route path="/quiz/:id" element={
     <RequireAuth>
-      <QuizPage />
+      <QuizzesPage />
     </RequireAuth>
   } />
 

@@ -1,4 +1,8 @@
 import mongoose from 'mongoose';
+import { Resource } from '../models/Resource.js';
+import { FlashcardSetModel } from '../models/FlashcardSet.js';
+import { FlashcardStudySessionModel } from '../models/FlashcardStudySession.js';
+import { Quiz } from '../models/Quiz.js';
 
 export const buildDashboard = async (userId: string) => {
   const stats = await getStats(userId);
@@ -12,6 +16,26 @@ export const buildDashboard = async (userId: string) => {
   };
 };
 
+export type ActivityLogItem = {
+  id: string;
+  type: "resource_uploaded" | "summary_created" | "flashcards_created" | "quiz_created";
+  resourceId: string;
+  resourceTitle: string;
+  createdAt: string;
+};
+
+type ActivityLogOptions = {
+  limit?: number;
+};
+
+type ResourceSummaryDoc = {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  summary?: {
+    createdAt?: Date;
+  };
+};
+
 interface DashboardStats {
   documentsCount: number;
   flashcardsCount: number;
@@ -19,6 +43,8 @@ interface DashboardStats {
 }
 
 interface TodayActivity {
+  studiedMinutes: number;
+  flashcardsReviewed: number;
   quizzesCompleted: number;
 }
 
@@ -39,7 +65,7 @@ const getStats = async (userId: string): Promise<DashboardStats> => {
     .collection('resources')
     .countDocuments({ ownerId: uid });
   const flashcardsCount = await db
-    .collection('flashcards')
+    .collection('flashcard_sets')
     .countDocuments({ ownerId: uid });
   const quizzesCount = await db
     .collection('quizzes')
@@ -67,13 +93,75 @@ const getTodayActivity = async (userId: string): Promise<TodayActivity> => {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
   );
 
+  const [quizzesCompleted, quizMinutesAgg, flashcardSessionAgg] =
+    await Promise.all([
+      db.collection('quizattempts').countDocuments({
+        ownerId: uid,
+        finishedAt: { $gte: today, $lt: tomorrow },
+      }),
+      db.collection('quizattempts').aggregate([
+        {
+          $match: {
+            ownerId: uid,
+            finishedAt: { $gte: today, $lt: tomorrow },
+            startedAt: { $gte: today, $lt: tomorrow },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalMs: {
+              $sum: { $subtract: ['$finishedAt', '$startedAt'] },
+            },
+          },
+        },
+      ]).toArray(),
+      (await FlashcardStudySessionModel.aggregate([
+        {
+          $match: {
+            ownerId: uid,
+            finishedAt: { $gte: today, $lt: tomorrow },
+            startedAt: { $gte: today, $lt: tomorrow },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalMs: { $sum: { $subtract: ['$finishedAt', '$startedAt'] } },
+            cardsReviewed: { $sum: '$cardsReviewed' },
+          },
+        },
+      ])) as Array<{ totalMs?: number; cardsReviewed?: number }>,
+    ]);
+
+  const quizMs =
+    quizMinutesAgg.length > 0 && typeof quizMinutesAgg[0]?.totalMs === 'number'
+      ? quizMinutesAgg[0].totalMs
+      : 0;
+  const flashcardMs =
+    flashcardSessionAgg.length > 0 &&
+    typeof flashcardSessionAgg[0]?.totalMs === 'number'
+      ? flashcardSessionAgg[0].totalMs
+      : 0;
+  const totalMs = quizMs + flashcardMs;
+  const studiedMinutes =
+    totalMs > 0 ? Math.max(1, Math.ceil(totalMs / 60000)) : 0;
+  const flashcardsReviewed =
+    flashcardSessionAgg.length > 0 &&
+    typeof flashcardSessionAgg[0]?.cardsReviewed === 'number'
+      ? flashcardSessionAgg[0].cardsReviewed
+      : 0;
+
+  return { studiedMinutes, flashcardsReviewed, quizzesCompleted };
+};
+
+/*
+  Legacy block kept for reference:
   const quizzesCompleted = await db.collection('quizattempts').countDocuments({
     ownerId: uid,
     finishedAt: { $gte: today, $lt: tomorrow },
   });
-
-  return { quizzesCompleted };
-};
+*/
 
 const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
   const uid = new mongoose.Types.ObjectId(userId);
@@ -87,21 +175,25 @@ const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7),
   );
 
-  const [flashcardsCount, summariesCount, quizzesCount] = await Promise.all([
-    db.collection('flashcards').countDocuments({
-      ownerId: uid,
-      createdAt: { $gte: fromDate },
-    }),
+  const [flashcardAgg, summariesCount, quizzesCount] = await Promise.all([
+    (await FlashcardStudySessionModel.aggregate([
+      { $match: { ownerId: uid, finishedAt: { $gte: fromDate } } },
+      { $group: { _id: null, cardsReviewed: { $sum: '$cardsReviewed' } } },
+    ])) as Array<{ cardsReviewed?: number }>,
     db.collection('resources').countDocuments({
       ownerId: uid,
-      createdAt: { $gte: fromDate },
-      summary: { $exists: true, $ne: null },
+      "summary.createdAt": { $gte: fromDate },
     }),
-    db.collection('quizzes').countDocuments({
+    db.collection('quizattempts').countDocuments({
       ownerId: uid,
-      createdAt: { $gte: fromDate },
+      finishedAt: { $gte: fromDate },
     }),
   ]);
+
+  const flashcardsCount =
+    flashcardAgg.length > 0 && typeof flashcardAgg[0]?.cardsReviewed === 'number'
+      ? flashcardAgg[0].cardsReviewed
+      : 0;
 
   const total = flashcardsCount + summariesCount + quizzesCount;
 
@@ -118,4 +210,96 @@ const getWeeklyActivity = async (userId: string): Promise<WeeklyActivity> => {
     summaries: Math.round((summariesCount / total) * 100),
     quizzes: Math.round((quizzesCount / total) * 100),
   };
+};
+
+const toIsoString = (value?: Date): string => {
+  if (!value) return new Date().toISOString();
+  return value.toISOString();
+};
+
+export const buildActivityLog = async (
+  userId: string,
+  options: ActivityLogOptions = {}
+): Promise<ActivityLogItem[]> => {
+  const limit = Math.max(1, Math.min(50, options.limit ?? 10));
+  const uid = new mongoose.Types.ObjectId(userId);
+
+  const [resources, summaries, flashcardSets, quizzes] = await Promise.all([
+    Resource.find({ ownerId: uid })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select({ _id: 1, title: 1, createdAt: 1 })
+      .lean(),
+    Resource.find({ ownerId: uid, "summary.createdAt": { $exists: true } })
+      .sort({ "summary.createdAt": -1 })
+      .limit(limit)
+      .select({ _id: 1, title: 1, summary: 1 })
+      .lean(),
+    FlashcardSetModel.find({ ownerId: uid })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select({ _id: 1, resourceId: 1, createdAt: 1 })
+      .lean(),
+    Quiz.find({ ownerId: uid })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select({ _id: 1, resourceId: 1, createdAt: 1 })
+      .lean(),
+  ]);
+
+  const resourceIds = new Set<string>();
+  flashcardSets.forEach((set) => resourceIds.add(set.resourceId.toString()));
+  quizzes.forEach((quiz) => resourceIds.add(quiz.resourceId.toString()));
+
+  const resourceTitles = new Map<string, string>();
+  if (resourceIds.size > 0) {
+    const resourceDocs = await Resource.find({
+      _id: { $in: Array.from(resourceIds) },
+    })
+      .select({ _id: 1, title: 1 })
+      .lean();
+    resourceDocs.forEach((doc) => {
+      resourceTitles.set(doc._id.toString(), doc.title);
+    });
+  }
+
+  const items: ActivityLogItem[] = [
+    ...resources.map((resource) => ({
+      id: resource._id.toString(),
+      type: "resource_uploaded" as const,
+      resourceId: resource._id.toString(),
+      resourceTitle: resource.title,
+      createdAt: toIsoString(resource.createdAt),
+    })),
+    ...summaries.map((resource: ResourceSummaryDoc) => ({
+      id: `${resource._id.toString()}-summary`,
+      type: "summary_created" as const,
+      resourceId: resource._id.toString(),
+      resourceTitle: resource.title,
+      createdAt: toIsoString(resource.summary?.createdAt),
+    })),
+    ...flashcardSets.map((set) => ({
+      id: set._id.toString(),
+      type: "flashcards_created" as const,
+      resourceId: set.resourceId.toString(),
+      resourceTitle:
+        resourceTitles.get(set.resourceId.toString()) || "Untitled Resource",
+      createdAt: toIsoString(set.createdAt),
+    })),
+    ...quizzes.map((quiz) => ({
+      id: quiz._id.toString(),
+      type: "quiz_created" as const,
+      resourceId: quiz.resourceId.toString(),
+      resourceTitle:
+        resourceTitles.get(quiz.resourceId.toString()) || "Untitled Resource",
+      createdAt: toIsoString(quiz.createdAt),
+    })),
+  ];
+
+  return items
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, limit);
 };

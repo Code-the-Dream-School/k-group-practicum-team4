@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { FlashcardSetModel } from '../models/FlashcardSet';
 import { FlashcardModel } from '../models/Flashcard';
 import { Resource } from '../models/Resource';
+import { FlashcardStudySessionModel } from '../models/FlashcardStudySession';
 import { generateFlashcardsFromText } from '../services/flashcardsGenerator';
 
 const getOwnerId = (req: Request): string | undefined =>
@@ -282,6 +283,66 @@ export const deleteFlashcardsSet = async (req: Request, res: Response) => {
     await FlashcardSetModel.deleteOne({ _id: setId, ownerId });
 
     return res.status(204).send();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Unknown error';
+    return res.status(500).json({ message: msg });
+  }
+};
+
+export const recordFlashcardStudySession = async (req: Request, res: Response) => {
+  try {
+    const ownerIdStr = getOwnerId(req);
+    if (!ownerIdStr) {
+      return res.status(401).json({ message: 'Unauthorized.' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(ownerIdStr)) {
+      return res.status(400).json({ message: 'Invalid ownerId.' });
+    }
+
+    const ownerId = new mongoose.Types.ObjectId(ownerIdStr);
+
+    const setIdStr = req.params.setId;
+    if (!setIdStr || !mongoose.Types.ObjectId.isValid(setIdStr)) {
+      return res.status(400).json({ message: 'Invalid setId.' });
+    }
+    const setId = new mongoose.Types.ObjectId(setIdStr);
+
+    const { cardsReviewed, startedAt, finishedAt } = req.body as {
+      cardsReviewed?: number;
+      startedAt?: string;
+      finishedAt?: string;
+    };
+
+    if (typeof cardsReviewed !== 'number' || cardsReviewed < 0) {
+      return res.status(400).json({ message: 'cardsReviewed must be a non-negative number.' });
+    }
+
+    if (!startedAt || !finishedAt) {
+      return res.status(400).json({ message: 'startedAt and finishedAt are required.' });
+    }
+
+    const started = new Date(startedAt);
+    const finished = new Date(finishedAt);
+    if (Number.isNaN(started.getTime()) || Number.isNaN(finished.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format.' });
+    }
+
+    const set = await FlashcardSetModel.findOne({ _id: setId, ownerId }).lean();
+    if (!set) {
+      return res.status(404).json({ message: 'Flashcard set not found.' });
+    }
+
+    const session = await FlashcardStudySessionModel.create({
+      ownerId,
+      setId,
+      cardsReviewed,
+      startedAt: started,
+      finishedAt: finished,
+    });
+
+    return res.status(201).json({
+      sessionId: session._id.toString(),
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     return res.status(500).json({ message: msg });
