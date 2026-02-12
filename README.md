@@ -1,8 +1,8 @@
-# AI Study Assistant (Practicum)
+# AI Study Hub (Practicum)
 
 AI-powered study tool that helps students learn faster by generating summaries, flashcards, and quizzes from their study materials.
 
-## 🚀 Live Demo
+## 📂 Repository Links
 
 - **Frontend Repo:** `/frontend`
 - **Mobile Repo:** `/mobile`
@@ -178,7 +178,12 @@ project-root/
 ## 🤝 Team & Collaboration
 
 ### Team Members
-- [TODO: Add Team Members]
+- Aida Burlutckaia — Full-Stack Developer
+- Alena Danilchenko — Frontend Developer
+- Anastasia Nikulkina — Mobile Developer
+- Dmytro Azarenkov — Backend Developer
+- Kseniia Zakharova — Backend Developer
+- Natalia Sirtak — Full-Stack Developer
 
 ## 📌 Known Issues / Limitations
 - No automated tests yet.
