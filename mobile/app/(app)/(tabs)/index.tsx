@@ -14,14 +14,13 @@ import {
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-// API imports (adjust paths as needed)
 import {
     getUserResources,
     createResource,
     deleteResource,
     askAi,
     type ResourceDto,
-} from '../../../api/apiClient'; // your apiClient path
+} from '../../../api/apiClient';
 
 export default function LibraryScreen() {
     const router = useRouter();
@@ -63,7 +62,6 @@ export default function LibraryScreen() {
         }
     };
 
-    // Tags
     const addTag = () => {
         const trimmed = newTagInput.trim();
         if (trimmed && !newTags.includes(trimmed)) {
@@ -76,7 +74,6 @@ export default function LibraryScreen() {
         setNewTags(newTags.filter(t => t !== tag));
     };
 
-    // Save resource
     const handleSaveResource = async () => {
         if (!newTitle.trim()) return Alert.alert('Error', 'Title is required');
         if (!newText.trim()) return Alert.alert('Error', 'Content is required');
@@ -122,10 +119,10 @@ export default function LibraryScreen() {
         }
     };
 
-    // Render single resource card
+
     const renderResource = ({ item }: { item: ResourceDto }) => (
         <TouchableOpacity
-            onPress={() => router.push({ pathname: `/resource/${item._id}` })}
+            onPress={() => router.push(`/resource/${item._id}`)}
             className="mb-4 rounded-2xl bg-white p-5 border border-slate-200 shadow-sm"
         >
             <View className="flex-row justify-between items-start mb-3">
