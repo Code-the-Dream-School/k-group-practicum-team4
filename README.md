@@ -1,105 +1,86 @@
-# Project Name
+# AI Study Hub (Practicum)
 
-Short, clear description of what this application does and who it’s for.  
-(1–2 sentences max.)
+AI-powered study tool that helps students learn faster by generating summaries, flashcards, and quizzes from their study materials.
 
-**Example:**  
-A full-stack web application with a React frontend and a Node/Express backend that allows users to create, manage, and track data stored in a database.
+## 📂 Repository Links
 
-## 🚀 Live Demo
-
-- **Frontend Live Site:** https://your-frontend-url.com  
-- **Frontend Repo:** /frontend
-- **Mobile Repo:** /mobile    
-- **Backend Repo:** /backend
+- **Frontend Repo:** `/frontend`
+- **Mobile Repo:** `/mobile`
+- **Backend Repo:** `/backend`
 
 ## 🧠 Problem Statement
 
-What problem does this project solve?
+Students often struggle to process large amounts of information and create effective study materials like summaries and flashcards. This project automates these tasks using AI, allowing students to focus on learning rather than organization.
 
-- Who is this application for?
-- What pain point does it address?
-- Why does this solution matter?
-
-Focus on the **user problem**, not the technology.
+This application is designed for students and lifelong learners facing information overload and time-consuming manual study prep. It provides immediate, high-quality study aids tailored to the user's specific content.
 
 ## 🎯 Features
 
-- User authentication (register, login, logout)
-- CRUD operations for core resources
-- Protected routes and authorization
-- Responsive UI (mobile & desktop)
-- Form validation and error handling
-- RESTful API integration
-
-## 📸 Screenshots
-
-Add screenshots or GIFs of key features here.
-
-
+- **AI Summarization:** Automatically generate concise summaries from long study materials.
+- **Flashcard Generation:** Create study decks instantly using AI.
+- **Interactive Quizzes:** Test knowledge with AI-generated questions.
+- **Study Dashboard:** Track progress and manage study resources.
+- **Multi-platform:** Access via web or mobile (React Native).
+- **Secure Auth:** JWT-based authentication for user accounts.
 
 ## 🛠 Tech Stack
 
 ### Frontend & Mobile
-- React (Web) & React Native (Expo)
-- TypeScript
-- Tailwind CSS v4 & NativeWind v4
-- Vite & Expo Router
+- **React 19** (Web) & **React Native / Expo** (Mobile)
+- **TypeScript**
+- **Tailwind CSS v4** & **NativeWind v4**
+- **Vite** & **Expo Router**
+- **Lucide React** (Icons)
 
 ### Backend
-- Node.js & Express.js
-- TypeScript
-- REST API
+- **Node.js** & **Express.js**
+- **TypeScript**
+- **Google Generative AI** (Gemini API)
+- **REST API**
 
 ### Database
-- MongoDB (Mongoose)
+- **MongoDB** (Mongoose)
 
 ### Tooling
-- Git & GitHub
-- dotenv (environment variables)
-- ESLint / Prettier
+- **Git & GitHub**
+- **GitHub Actions** (CI)
+- **dotenv** (Environment variables)
+- **ESLint / Prettier**
 
 ## 📁 Project Structure
 
 ```text
 project-root/
-├── frontend/
+├── frontend/             # React Web Application
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
 │   │   ├── hooks/
-│   │   ├── services/        
-│   │   ├── styles/
-│   │   ├── utils/
+│   │   ├── assets/
 │   │   ├── App.tsx
 │   │   └── main.tsx
-│   ├── index.html
-│   ├── tsconfig.json
-│   └── package.json
+│   ├── package.json
+│   └── tsconfig.json
 │
-├── mobile/
-│   ├── app/
-│   │   ├── _layout.tsx
-│   │   └── index.tsx
+├── mobile/               # React Native (Expo) Application
+│   ├── app/              # Expo Router pages
 │   ├── components/
 │   ├── assets/
-│   ├── global.css
-│   ├── tailwind.config.js
+│   ├── constants/
 │   └── package.json
 │
-├── backend/
+├── backend/              # Node.js Express API
 │   ├── src/
 │   │   ├── controllers/
 │   │   ├── routes/
 │   │   ├── models/
 │   │   ├── middleware/
+│   │   ├── services/     # AI and Business logic
 │   │   ├── config/
 │   │   ├── app.ts
-│   │   └── server.ts
-│   ├── dist/
-│   ├── tsconfig.json
-│   ├── .env.example
-│   └── package.json
+│   │   └── server.ts     # Entry point
+│   ├── package.json
+│   └── tsconfig.json
 │
 └── README.md
 ```
@@ -107,120 +88,105 @@ project-root/
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- npm or yarn
-- MongoDB or PostgreSQL (local or cloud)
+- **Node.js** (v18+ recommended)
+- **npm** (Package Manager)
+- **MongoDB** (Local or Atlas)
+- **Gemini API Key** (for AI features)
 
 ### Backend Setup
 
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-Create a `.env` file inside the `backend` folder:
-
-```env
-PORT=5000
-DATABASE_URL=your_database_url
-JWT_SECRET=your_secret_key
-```
-
-Backend runs on:  
-http://localhost:8080
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file based on existing config:
+   ```env
+   PORT=5000
+   MONGO_URI=your_mongodb_connection_string
+   GEMINI_API_KEY=your_gemini_api_key
+   JWT_SECRET=your_secret_key
+   NODE_ENV=development
+   ```
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
 ### Frontend Setup
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs on:  
-http://localhost:5173
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+   The app usually runs on: `http://localhost:5173`
 
 ### Mobile Setup
 
-```bash
-cd mobile
-npm install
-npx expo start --tunnel
+1. Navigate to the mobile directory:
+   ```bash
+   cd mobile
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Expo development server:
+   ```bash
+   npx expo start
+   ```
 
 ## 🧪 Available Scripts
 
-### Frontend
-```bash
-npm run dev
-npm run build
-npm run preview
-```
-### Mobile
-```bash
-npx expo start --tunnel   # Best for remote/mobile testing
-npx expo start --android  # Run on Android Emulator
-npx expo start --ios      # Run on iOS Simulator
-
 ### Backend
-```bash
-npm run dev
-npm start
-```
+- `npm run dev`: Starts the server with nodemon and tsc watch.
+- `npm run build`: Compiles TypeScript to JavaScript.
+- `npm start`: Runs the compiled server from `dist/`.
+
+### Frontend
+- `npm run dev`: Starts Vite development server.
+- `npm run build`: Builds the app for production.
+- `npm run lint`: Runs ESLint for code quality.
+- `npm run preview`: Previews the production build locally.
+
+### Mobile
+- `npx expo start`: Standard Expo start.
+- `npm run tunnel`: Expo start with tunnel (useful for testing on physical devices).
+- `npm run android`: Run on Android.
+- `npm run ios`: Run on iOS.
 
 ## 🔐 API Overview
 
-### Example Endpoints
-
-```text
-POST   /api/auth/register
-POST   /api/auth/login
-GET    /api/items
-POST   /api/items
-PUT    /api/items/:id
-DELETE /api/items/:id
-```
+### Endpoints
+- **Auth:** `POST /api/auth/register`, `POST /api/auth/login`
+- **Resources:** `GET /api/resources`, `POST /api/resources`, `POST /api/resources/:id/summary`
+- **Flashcards:** `POST /api/flashcard-sets/generate`, `GET /api/flashcard-sets`, `GET /api/flashcard-sets/:setId`
+- **Quiz:** `POST /api/quiz-sets/generate`, `GET /api/quiz-sets`, `POST /api/quiz-sets/:quizId/submit`
+- **AI Assistant:** `POST /api/ai/chat` (based on `ai.routes.ts`)
 
 ## 🤝 Team & Collaboration
 
 ### Team Members
-- Name — Role
-- Name — Role
-- Name — Role
-
-### Workflow
-- GitHub Issues for task tracking
-- Feature branches for development
-- Pull Requests required for all merges
-- Code reviews before merging to `main`
-
-
-## 🧩 Development Process
-
-- Agile / sprint-based workflow
-- Backend API built before frontend integration
-- MVP defined early
-- Incremental feature development
+- Aida Burlutckaia — Full-Stack Developer
+- Alena Danilchenko — Frontend Developer
+- Anastasia Nikulkina — Mobile Developer
+- Dmytro Azarenkov — Backend Developer
+- Kseniia Zakharova — Backend Developer
+- Natalia Sirtak — Full-Stack Developer
 
 ## 📌 Known Issues / Limitations
-
-- Limited role-based access control
-- No automated tests yet
-- Performance optimizations pending
-
-## 🛣 Future Improvements
-
-- Add automated testing (Jest, Supertest)
-- Improve security and validation
-- Add caching and performance improvements
-- Dockerize the application
-
-## 🙌 Acknowledgments
-
-- Mentors
-- Instructors
-- Open-source libraries and tools
+- No automated tests yet.
 
 ## 📄 License
-
 This project is for educational purposes only.

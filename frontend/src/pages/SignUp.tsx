@@ -45,7 +45,7 @@ function SignUpPage() {
                 avatarId: selectedAvatar,
             });
             setAuthFromToken(token);
-            navigate("/library");
+            navigate("/dashboard");
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Unable to create account.";
             setError(message);

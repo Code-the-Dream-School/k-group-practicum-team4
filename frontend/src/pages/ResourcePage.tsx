@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import Tabs from "../components/Tabs";
 import ResourceFlashcardsTab from "../components/ResourceFlashcardsTab";
+import ResourceQuizzesTab from "../components/ResourceQuizzesTab";
 import ResourceSummaryTab from "../components/ResourceSummaryTab";
+import AppHeader from "../components/AppHeader";
+import TopNav from "../components/TopNav";
 import { getResourceById, type ResourceDto } from "../api/apiClient";
 
 type TabKey = "resource" | "summary" | "flashcards" | "quizzes";
@@ -11,8 +14,13 @@ type TabKey = "resource" | "summary" | "flashcards" | "quizzes";
 function ResourcePage() {
   const { id } = useParams();
   const resourceId = id ?? "";
+  const location = useLocation();
+  const initialTab = ((): TabKey => {
+    const state = location.state as { activeTab?: TabKey } | null;
+    return state?.activeTab ?? "resource";
+  })();
 
-  const [activeTab, setActiveTab] = useState<TabKey>("resource");
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [resource, setResource] = useState<ResourceDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +39,9 @@ function ResourcePage() {
         setIsLoading(true);
         setError(null);
 
-        if (!resourceId) throw new Error("Missing resource id in URL.");
+        if (!resourceId) {
+          throw new Error("Missing resource id in URL.");
+        }
 
         const data = await getResourceById(resourceId);
         if (cancelled) return;
@@ -53,13 +63,22 @@ function ResourcePage() {
     };
   }, [resourceId]);
 
+  useEffect(() => {
+    const state = location.state as { activeTab?: TabKey } | null;
+    if (state?.activeTab) {
+      setActiveTab(state.activeTab);
+    }
+  }, [location.state]);
+
   const pageTitle = resource?.title ?? (isLoading ? "Loading…" : "Resource");
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+      <AppHeader />
+      <TopNav />
       <main className="px-4">
         <div className="mx-auto max-w-6xl py-10">
-          {/* Header like in mock (always shown) */}
+          {/* Header */}
           <div className="mb-10 flex items-baseline gap-6">
             <h1 className="text-5xl font-black tracking-tight">{pageTitle}</h1>
             <Link
@@ -71,7 +90,7 @@ function ResourcePage() {
             </Link>
           </div>
 
-          {/* Tabs (always shown) */}
+          {/* Tabs */}
           <div className="mb-14">
             <Tabs
               tabs={["resource", "summary", "flashcards", "quizzes"]}
@@ -111,6 +130,8 @@ function ResourcePage() {
               resourceId={resource._id}
               resourceTitle={resource.title}
             />
+          ) : activeTab === "quizzes" && resource ? (
+            <ResourceQuizzesTab />
           ) : (
             <div className="text-sm text-gray-500">Not implemented yet.</div>
           )}

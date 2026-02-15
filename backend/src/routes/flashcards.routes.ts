@@ -5,6 +5,7 @@ import {
   listFlashcardsSetsByResource,
   getFlashcardsSet,
   deleteFlashcardsSet,
+  recordFlashcardStudySession,
 } from '../controllers/flashcards.controller';
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get('/flashcard-sets', listAllFlashcardSets);
 router.get('/resources/:resourceId/flashcard-sets', listFlashcardsSetsByResource);
 router.get('/flashcard-sets/:setId', getFlashcardsSet);
 router.delete('/flashcard-sets/:setId', deleteFlashcardsSet);
+router.post('/flashcard-sets/:setId/sessions', recordFlashcardStudySession);
 
 export default router;
