@@ -53,16 +53,33 @@ export const clearAuth = async (): Promise<void> => {
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
     const token = await getAuthToken();
 
+    const fullUrl = `${BASE_URL}${path}`;
+
+    // Debug logs
+    console.log('🔥 API CALL START 🔥');
+    console.log('BASE_URL:', BASE_URL);
+    console.log('Path:', path);
+    console.log('Full URL:', fullUrl);
+    console.log('Method:', options.method || 'GET');
+    console.log('Body:', options.body ? options.body.toString() : 'no body');
+    console.log('Headers:', JSON.stringify({
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+    }));
+
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
     };
 
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(fullUrl, {
         ...options,
         headers,
     });
+
+    console.log('Response status:', res.status);
 
     let data;
     const text = await res.text();
@@ -76,15 +93,19 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<T> =
         if (res.status === 401) {
             await clearAuth();
         }
-        const message = data?.error || data?.message || `Request failed: ${res.status}`;
+        const message = data?.error || data?.message || `Request failed: ${res.status} ${res.statusText}`;
+        console.error('API Error:', message);
         throw new Error(message);
     }
 
     return data as T;
 };
 
-// Auth types
-type AuthResponse = {
+// ──────────────────────────────────────────────
+// Auth
+// ──────────────────────────────────────────────
+
+export type AuthResponse = {
     user: { displayName: string };
     token: string;
 };
@@ -118,3 +139,98 @@ export const loginUser = async (body: LoginBody): Promise<AuthResponse> => {
 export const setAuthFromToken = async (token: string): Promise<void> => {
     await setAuthToken(token);
 };
+
+// ──────────────────────────────────────────────
+// Dashboard
+// ──────────────────────────────────────────────
+
+export type DashboardStatsDto = {
+    documentsCount: number;
+    flashcardsCount: number;
+    quizzesCount: number;
+};
+
+export type WeeklyActivityDto = {
+    flashcards: number;
+    summaries: number;
+    quizzes: number;
+};
+
+export type TodayActivityDto = {
+    studiedMinutes: number;
+    flashcardsReviewed: number;
+    quizzesCompleted: number;
+};
+
+export type DashboardResponse = {
+    stats: DashboardStatsDto;
+    weeklyActivity: WeeklyActivityDto;
+    todayActivity: TodayActivityDto;
+};
+
+export async function getDashboardData(): Promise<DashboardResponse> {
+    return request<DashboardResponse>('/api/dashboard');
+}
+
+export type ActivityLogItemDto = {
+    id: string;
+    type: 'resource_uploaded' | 'summary_created' | 'flashcards_created' | 'quiz_created';
+    resourceId: string;
+    resourceTitle: string;
+    createdAt: string;
+};
+
+export async function getActivityLog(limit = 10): Promise<ActivityLogItemDto[]> {
+    const query = new URLSearchParams({ limit: String(limit) });
+    return request<ActivityLogItemDto[]>(`/api/dashboard/activity?${query.toString()}`);
+}
+
+// ──────────────────────────────────────────────
+// Resources
+// ──────────────────────────────────────────────
+
+export type ResourceSummaryDto = {
+    content: string;
+    createdAt: string;
+};
+
+export type ResourceDto = {
+    _id: string;
+    title: string;
+    tags: string[];
+    textContent: string;
+    type: 'plain_text';
+    createdAt: string;
+    updatedAt: string;
+    summary?: ResourceSummaryDto;
+};
+
+export async function getUserResources(): Promise<ResourceDto[]> {
+    const res = await request<{ success: true; count: number; resources: ResourceDto[] }>('/api/resources');
+    return res.resources;
+}
+
+export async function getResourceById(resourceId: string): Promise<ResourceDto> {
+    const res = await request<{ success: true; resource: ResourceDto }>(`/api/resources/${resourceId}`);
+    return res.resource;
+}
+
+export async function createResource(body: { title: string; textContent: string; tags: string[] }): Promise<ResourceDto> {
+    const res = await request<{ success: true; resource: ResourceDto }>('/api/resources', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+    return res.resource;
+}
+
+export async function deleteResource(resourceId: string): Promise<void> {
+    await request<unknown>(`/api/resources/${resourceId}`, { method: 'DELETE' });
+}
+
+export async function askAi(prompt: string): Promise<string> {
+    const res = await request<{ response: string }>('/api/ai/ask', {
+        method: 'POST',
+        body: JSON.stringify({ prompt }),
+    });
+    return res.response;
+}
