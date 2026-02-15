@@ -30,10 +30,14 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "API_URL": "https://b279-2601-642-4c02-abd3-43f-5969-e9e7-e5d1.ngrok-free.app"
     }
   }
 }
