@@ -204,7 +204,11 @@ export type ResourceDto = {
     updatedAt: string;
     summary?: ResourceSummaryDto;
 };
-
+type UpdateResourceBody = {
+    title?: string;
+    tags?: string[];
+    textContent?: string;
+};
 export async function getUserResources(): Promise<ResourceDto[]> {
     const res = await request<{ success: true; count: number; resources: ResourceDto[] }>('/api/resources');
     return res.resources;
@@ -212,6 +216,39 @@ export async function getUserResources(): Promise<ResourceDto[]> {
 
 export async function getResourceById(resourceId: string): Promise<ResourceDto> {
     const res = await request<{ success: true; resource: ResourceDto }>(`/api/resources/${resourceId}`);
+    return res.resource;
+}
+
+type GenerateResourceSummaryResponse = {
+    success: true;
+    summary: {
+        content: string;
+        createdAt: string;
+    };
+};
+type UpdateResourceResponse = {
+    success: true;
+    resource: ResourceDto;
+};
+export async function generateResourceSummary(
+    resourceId: string
+): Promise<GenerateResourceSummaryResponse> {
+    return request<GenerateResourceSummaryResponse>(
+        `/api/resources/${resourceId}/summary`,
+        { method: "POST" }
+    );
+}
+
+
+
+export async function updateResource(
+    resourceId: string,
+    body: UpdateResourceBody
+): Promise<ResourceDto> {
+    const res = await request<UpdateResourceResponse>(`/api/resources/${resourceId}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
     return res.resource;
 }
 
