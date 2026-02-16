@@ -21,6 +21,7 @@ import {
     askAi,
     type ResourceDto,
 } from '../../../api/apiClient';
+import AppHeader from "@/components/AppHeader";
 
 export default function LibraryScreen() {
     const router = useRouter();
@@ -150,17 +151,7 @@ export default function LibraryScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-slate-50">
-            {/* Header */}
-            <View className="bg-indigo-600 px-6 pt-12 pb-6">
-                <Text className="text-3xl font-extrabold text-white mb-4">My Library</Text>
-                <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    className="bg-white rounded-full py-4 px-6 self-start shadow-md"
-                >
-                    <Text className="text-indigo-600 font-bold text-center">Upload Resource</Text>
-                </TouchableOpacity>
-            </View>
-
+            <AppHeader />
             <ScrollView className="flex-1 px-6 pt-6">
                 {/* Resources Section */}
                 {error ? (

@@ -1,29 +1,27 @@
 import React from 'react';
 import "../../../global.css";
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons'; // or your icon library
 
-export default function TabsLayout() {
+export default function TabLayout() {
     return (
         <Tabs
             screenOptions={{
+                headerShown: false,
                 tabBarActiveTintColor: '#4f46e5',
                 tabBarInactiveTintColor: 'gray',
+                tabBarStyle: { backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e2e8f0' },
             }}
         >
-            {/* First tab - default / home */}
             <Tabs.Screen
                 name="index"
                 options={{
                     title: 'Library',
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialIcons name="home" size={size} color={color} />
+                        <MaterialIcons name="library-books" size={size} color={color} />
                     ),
                 }}
             />
-
-            {/* Second tab - Dashboard */}
             <Tabs.Screen
                 name="dashboard"
                 options={{
@@ -33,6 +31,7 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+            {/* Add other tabs if any */}
         </Tabs>
     );
 }
