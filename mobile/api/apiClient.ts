@@ -318,3 +318,92 @@ export async function generateFlashcards(body: { resourceId: string; title?: str
 export async function deleteFlashcardSet(setId: string): Promise<void> {
     await request(`/api/flashcard-sets/${setId}`, { method: 'DELETE' });
 }
+
+//-------------------------------------------
+// Quizzes
+//-------------------------------------------
+export type QuizListItemDto = {
+    id: string;
+    title: string;
+    questionCount: number;
+    lastScore?: number | null;
+    createdAt: string;
+};
+
+export type QuizListItemWithResourceDto = QuizListItemDto & {
+    resourceId: string;
+    resourceTitle: string;
+};
+
+export type QuizQuestionDto = {
+    id: string;
+    prompt: string;
+    options: string[];
+};
+
+export type QuizDetailDto = {
+    id: string;
+    title: string;
+    questionCount?: number;
+    questions: QuizQuestionDto[];
+};
+
+export type GenerateQuizResponseDto = {
+    quizId: string;
+};
+
+export type QuizSubmitAnswerDto = {
+    questionId: string;
+    selectedIndex: number;
+};
+
+export type QuizSubmitRequestDto = {
+    answers: QuizSubmitAnswerDto[];
+    startedAt: string;
+};
+
+export type QuizSubmitResponseDto = {
+    attemptId: string;
+    scorePercent: number;
+    correctCount: number;
+    totalQuestions: number;
+    results: {
+        questionId: string;
+        prompt: string;
+        options: string[];
+        selectedIndex: number;
+        correctIndex: number;
+        isCorrect: boolean;
+        explanation?: string;
+    }[];
+};
+
+export async function getResourceQuizzes(resourceId: string): Promise<QuizListItemDto[]> {
+    return request<QuizListItemDto[]>(`/api/resources/${resourceId}/quiz-sets`);
+}
+
+export async function getAllQuizSets(): Promise<QuizListItemWithResourceDto[]> {
+    return request<QuizListItemWithResourceDto[]>(`/api/quiz-sets`);
+}
+
+export async function generateQuiz(resourceId: string, count: number): Promise<GenerateQuizResponseDto> {
+    return request<GenerateQuizResponseDto>(`/api/quiz-sets/generate`, {
+        method: 'POST',
+        body: JSON.stringify({ resourceId, questionCount: count }),
+    });
+}
+
+export async function getQuiz(quizId: string): Promise<QuizDetailDto> {
+    return request<QuizDetailDto>(`/api/quiz-sets/${quizId}/questions`);
+}
+
+export async function submitQuiz(quizId: string, body: QuizSubmitRequestDto): Promise<QuizSubmitResponseDto> {
+    return request<QuizSubmitResponseDto>(`/api/quiz-sets/${quizId}/submit`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+}
+
+export async function deleteQuizSet(quizId: string): Promise<void> {
+    await request(`/api/quiz-sets/${quizId}`, { method: 'DELETE' });
+}

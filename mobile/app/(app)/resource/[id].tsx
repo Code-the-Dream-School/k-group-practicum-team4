@@ -18,6 +18,7 @@ import {
 } from '../../../api/apiClient';
 
 import ResourceFlashcardsTab from './[id]/flashcards';
+import ResourceQuizzesTab from "@/app/(app)/resource/[id]/quizzes";
 
 export default function ResourceDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -140,16 +141,10 @@ export default function ResourceDetailScreen() {
 
             case 'quizzes':
                 return (
-                    <View className="flex-1 items-center justify-center bg-white rounded-t-3xl p-6">
-                        <Text className="text-xl font-medium text-slate-700 mb-6 text-center">
-                            Coming soon
-                        </Text>
-                        <TouchableOpacity className="bg-indigo-600 px-8 py-4 rounded-full shadow-md">
-                            <Text className="text-white font-bold text-lg">
-                                Generate {activeTab === 'flashcards' ? 'Flashcards' : 'Quizzes'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    <ResourceQuizzesTab
+                        resourceId={resource._id}
+                        resourceTitle={resource.title}
+                    />
                 );
 
             default:
