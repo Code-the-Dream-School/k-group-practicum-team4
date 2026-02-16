@@ -15,7 +15,9 @@ import {
     getResourceById,
     generateResourceSummary,
     type ResourceDto,
-} from '../../../api/apiClient'; // adjust path if needed
+} from '../../../api/apiClient';
+
+import ResourceFlashcardsTab from './[id]/flashcards';
 
 export default function ResourceDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,7 +53,7 @@ export default function ResourceDetailScreen() {
         try {
             setIsGeneratingSummary(true);
             await generateResourceSummary(resource._id);
-            await loadResource(); // refresh to get new summary
+            await loadResource();
         } catch (err: any) {
             Alert.alert('Error', err.message || 'Failed to generate summary');
         } finally {
@@ -59,9 +61,8 @@ export default function ResourceDetailScreen() {
         }
     };
 
-    // Back button now closes the screen/modal
     const handleBack = () => {
-        router.back(); // ← This closes the detail screen and returns to Library tab
+        router.back();
     };
 
     const renderTabContent = () => {
@@ -130,6 +131,13 @@ export default function ResourceDetailScreen() {
                 );
 
             case 'flashcards':
+                return (
+                    <ResourceFlashcardsTab
+                        resourceId={resource._id}
+                        resourceTitle={resource.title}
+                    />
+                );
+
             case 'quizzes':
                 return (
                     <View className="flex-1 items-center justify-center bg-white rounded-t-3xl p-6">
@@ -151,7 +159,6 @@ export default function ResourceDetailScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-slate-50">
-            {/* Header with Back button */}
             <View className="bg-indigo-600 px-6 pt-12 pb-6">
                 <View className="flex-row items-center">
                     <TouchableOpacity onPress={handleBack} className="p-2 -ml-2">
@@ -163,23 +170,20 @@ export default function ResourceDetailScreen() {
                 </View>
             </View>
 
-            {/* Tabs */}
             <View className="bg-white border-b border-slate-200">
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    className="py-3 px-4" // reduced vertical padding
+                    className="py-3 px-4"
                     contentContainerStyle={{ paddingRight: 16 }}
                 >
-                    <View className="flex-row gap-2"> {/* smaller gap between buttons */}
+                    <View className="flex-row gap-2">
                         {['resource', 'summary', 'flashcards', 'quizzes'].map((tab) => (
                             <TouchableOpacity
                                 key={tab}
                                 onPress={() => setActiveTab(tab as any)}
                                 className={`px-5 py-2.5 rounded-full min-w-[90px] items-center ${
-                                    activeTab === tab
-                                        ? 'bg-indigo-600'
-                                        : 'bg-slate-100'
+                                    activeTab === tab ? 'bg-indigo-600' : 'bg-slate-100'
                                 }`}
                             >
                                 <Text
@@ -195,7 +199,6 @@ export default function ResourceDetailScreen() {
                 </ScrollView>
             </View>
 
-            {/* Content */}
             {renderTabContent()}
         </SafeAreaView>
     );

@@ -271,3 +271,50 @@ export async function askAi(prompt: string): Promise<string> {
     });
     return res.response;
 }
+
+//-------------------------------------------
+// Flashcards
+//-------------------------------------------
+export type FlashcardSetListItemDto = {
+    id: string;
+    title: string;
+    sequenceNumber: number;
+    createdAt: string;
+    resourceId?: string;
+    resourceTitle?: string;
+    cardsCount?: number;
+};
+export type FlashcardDto = {
+    id: string;
+    front: string;
+    back: string;
+    explanation?: string;
+};
+
+export type FlashcardSetDetailDto = {
+    id: string;
+    title: string;
+    sequenceNumber: number;
+    createdAt: string;
+    cards: FlashcardDto[];
+};
+
+
+export async function getFlashcardSetsByResource(resourceId: string): Promise<FlashcardSetListItemDto[]> {
+    return request(`/api/resources/${resourceId}/flashcard-sets`);
+}
+
+export async function getFlashcardSetById(setId: string): Promise<any> {
+    return request(`/api/flashcard-sets/${setId}`);
+}
+
+export async function generateFlashcards(body: { resourceId: string; title?: string; count?: number }): Promise<any> {
+    return request('/api/flashcard-sets/generate', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+}
+
+export async function deleteFlashcardSet(setId: string): Promise<void> {
+    await request(`/api/flashcard-sets/${setId}`, { method: 'DELETE' });
+}

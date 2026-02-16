@@ -6,10 +6,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { AuthProvider, useAuth } from '@/context/auth';
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 
-// Force start on dashboard for testing
 export const unstable_settings = {
-  initialRouteName: '(app)/(tabs)',  // ← this should take priority now
+  initialRouteName: '(app)/(tabs)',
 };
 
 SplashScreen.preventAutoHideAsync();
@@ -47,23 +47,15 @@ function RootLayoutNav() {
             console.log('[Auth] Loading auth state...');
             return;
         }
-
         console.log('[Auth] Segments:', segments);
         console.log('[Auth] User exists?', !!user);
 
-        // Detect if we are on the landing page (root)
-        const isOnLanding =
-            segments.length === 0 ||
-            segments[0] === '' ||
-            segments[0] === 'index';
-
-        // VERY IMPORTANT: Completely skip redirect logic when on landing
+        const isOnLanding = segments.length === 0 || segments[0] === '' || segments[0] === 'index';
         if (isOnLanding) {
             console.log('[Auth] On landing page → NO redirect allowed');
             return;
         }
 
-        // Only apply auth protection for other routes
         const inAuthGroup = segments[0] === '(auth)';
         const inAppGroup = segments[0] === '(app)';
 
@@ -77,11 +69,14 @@ function RootLayoutNav() {
     }, [user, segments, isLoading, router]);
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />           {/* Landing page */}
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(app)" />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(app)" />
+                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="resource/[id]" options={{ presentation: 'modal' }} />
+            </Stack>
+        </GestureHandlerRootView>
     );
 }
