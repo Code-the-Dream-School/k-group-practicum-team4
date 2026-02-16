@@ -10,10 +10,12 @@ import {
     ActivityIndicator,
     Alert,
     SafeAreaView,
+    StatusBar
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import AppHeader from '@/components/AppHeader'; // adjust path if needed
 import {
     getUserResources,
     createResource,
@@ -62,6 +64,7 @@ export default function LibraryScreen() {
         }
     };
 
+    // Tags
     const addTag = () => {
         const trimmed = newTagInput.trim();
         if (trimmed && !newTags.includes(trimmed)) {
@@ -74,6 +77,7 @@ export default function LibraryScreen() {
         setNewTags(newTags.filter(t => t !== tag));
     };
 
+    // Save resource
     const handleSaveResource = async () => {
         if (!newTitle.trim()) return Alert.alert('Error', 'Title is required');
         if (!newText.trim()) return Alert.alert('Error', 'Content is required');
@@ -119,7 +123,6 @@ export default function LibraryScreen() {
         }
     };
 
-
     const renderResource = ({ item }: { item: ResourceDto }) => (
         <TouchableOpacity
             onPress={() => router.push(`/resource/${item._id}`)}
@@ -150,18 +153,27 @@ export default function LibraryScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-slate-50">
-            {/* Header */}
-            <View className="bg-indigo-600 px-6 pt-12 pb-6">
-                <Text className="text-3xl font-extrabold text-white mb-4">My Library</Text>
-                <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    className="bg-white rounded-full py-4 px-6 self-start shadow-md"
-                >
-                    <Text className="text-indigo-600 font-bold text-center">Upload Resource</Text>
-                </TouchableOpacity>
-            </View>
+            <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+                <AppHeader />
 
             <ScrollView className="flex-1 px-6 pt-6">
+                {/* Title + Upload button */}
+                <View className="mb-8">
+                    <Text className="text-3xl font-extrabold text-slate-900 mb-6">
+                        My Library
+                    </Text>
+
+                    {/* Upload Resource Button – big & prominent */}
+                    <TouchableOpacity
+                        onPress={() => setModalVisible(true)}
+                        className="bg-white rounded-full py-5 px-10 shadow-lg border border-indigo-200 self-start"
+                    >
+                        <Text className="text-indigo-600 font-bold text-xl text-center">
+                            Upload Resource
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Resources Section */}
                 {error ? (
                     <Text className="text-red-500 text-center mb-6">{error}</Text>
@@ -185,7 +197,9 @@ export default function LibraryScreen() {
                 <View className="mt-10 mb-20">
                     <View className="flex-row items-center mb-4">
                         <MaterialIcons name="auto-awesome" size={28} color="#4f46e5" />
-                        <Text className="text-2xl font-bold text-slate-900 ml-3">AI Workspace</Text>
+                        <Text className="text-2xl font-bold text-slate-900 ml-3">
+                            AI Workspace
+                        </Text>
                     </View>
 
                     <View className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
