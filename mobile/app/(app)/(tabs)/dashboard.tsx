@@ -9,6 +9,7 @@ import {
     TextInput,
     Alert,
     Image,
+    StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -145,7 +146,8 @@ export default function DashboardScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-slate-50">
-            <AppHeader />
+            <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+                <AppHeader />
             <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }}>
                 {/* Greeting */}
                 <Text className="text-3xl font-extrabold text-slate-900 mb-8">

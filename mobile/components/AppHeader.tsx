@@ -24,7 +24,7 @@ export default function AppHeader() {
             <View className="flex-row items-center justify-between px-6 py-4">
                 {/* Logo */}
                 <Image
-                    source={require('../assets/images/logo.svg')}
+                    source={require('../assets/images/logo.png')}
                     style={{ width: 140, height: 40 }}
                     resizeMode="contain"
                 />
