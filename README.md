@@ -51,7 +51,7 @@ This application is designed for students and lifelong learners facing informati
 
 ```text
 project-root/
-├── frontend/             # React Web Application
+├── frontend/                   # React Web Application (Vite + React 19)
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
@@ -62,27 +62,27 @@ project-root/
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── mobile/               # React Native (Expo) Application
-│   ├── app/              # Expo Router pages
+├── mobile/                     # React Native + Expo Application
+│   ├── app/                    # Expo Router (file-based routing)
 │   ├── components/
 │   ├── assets/
 │   ├── constants/
 │   └── package.json
 │
-├── backend/              # Node.js Express API
+├── backend/                    # Node.js + Express API
 │   ├── src/
 │   │   ├── controllers/
 │   │   ├── routes/
 │   │   ├── models/
 │   │   ├── middleware/
-│   │   ├── services/     # AI and Business logic
+│   │   ├── services/           # AI & business logic
 │   │   ├── config/
 │   │   ├── app.ts
-│   │   └── server.ts     # Entry point
+│   │   └── server.ts           # Entry point
 │   ├── package.json
 │   └── tsconfig.json
 │
-└── README.md
+└── README.md                   # Documentation
 ```
 
 ## ⚙️ Setup & Installation
