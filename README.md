@@ -57,40 +57,12 @@ It provides immediate, high-quality study aids tailored to the user's specific c
 - **ESLint / Prettier**
 
 ## 📁 Project Structure
-project-root/
-├── frontend/                   # React Web Application (Vite + React 19)
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── assets/
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── mobile/               # React Native (Expo) Application
-│   ├── app/              # Expo Router pages & layouts
-│   ├── components/
-│   ├── assets/
-│   ├── constants/
-│   └── package.json
-│
-├── backend/                    # Node.js + Express API
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── routes/
-│   │   ├── models/
-│   │   ├── middleware/
-│   │   ├── services/           # AI & business logic
-│   │   ├── config/
-│   │   ├── app.ts
-│   │   └── server.ts           # Entry point
-│   ├── package.json
-│   └── tsconfig.json
-│
-└── README.md
-text## ⚙️ Setup & Installation
+Here's a visual overview of the repository:
+
+![Project Structure](./structure.png)
+
+*(Click to enlarge if needed)*
+## ⚙️ Setup & Installation
 
 ### Prerequisites
 
