@@ -58,7 +58,7 @@ It provides immediate, high-quality study aids tailored to the user's specific c
 
 ## 📁 Project Structure
 project-root/
-├── frontend/             # React Web Application
+├── frontend/                   # React Web Application (Vite + React 19)
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
@@ -76,16 +76,16 @@ project-root/
 │   ├── constants/
 │   └── package.json
 │
-├── backend/              # Node.js Express API
+├── backend/                    # Node.js + Express API
 │   ├── src/
 │   │   ├── controllers/
 │   │   ├── routes/
 │   │   ├── models/
 │   │   ├── middleware/
-│   │   ├── services/     # AI and Business logic
+│   │   ├── services/           # AI & business logic
 │   │   ├── config/
 │   │   ├── app.ts
-│   │   └── server.ts     # Entry point
+│   │   └── server.ts           # Entry point
 │   ├── package.json
 │   └── tsconfig.json
 │
